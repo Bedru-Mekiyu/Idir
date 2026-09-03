@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'idir' => 'እድር',
+    'idirs' => 'እድሮች',
+    'create_idir' => 'አዲስ እድር ፍጠር',
+    'idir_name' => 'የእድር ስም',
+    'membership_basis' => 'የአባልነት መሰረት',
+    'membership_basis_help' => 'ለምሳሌ: ሰፈር፣ የስራ ቦታ፣ ቤተ ክርስቲያን',
+    'region' => 'ክልል',
+    'sub_city' => 'ክፍለ ከተማ',
+    'woreda' => 'ወረዳ',
+    'settings' => 'ቅንብሮች',
+    'basic_info' => 'መሰረታዊ መረጃ',
+    'dues_config' => 'የመዋጮ ቅንብር',
+    'payout_config' => 'የክፍያ ቅንብር',
+    'review_confirm' => 'ገምግም እና አረጋግጥ',
+    'dues_amount' => 'የመዋጮ መጠን',
+    'dues_frequency' => 'የመዋጮ ድግግሞሽ',
+    'late_fee' => 'የዘገየ ክፍያ ቅጣት',
+    'grace_period' => 'የእፎይታ ጊዜ (ቀናት)',
+    'vesting_period' => 'የብቃት ጊዜ (ቀናት)',
+    'required_approvals' => 'ያስፈልጋሉ ፈቃዶች',
+    'payout_triggers' => 'የክፍያ ምክንያቶች',
+    'fund_balance' => 'የገንዘብ ቀሪ',
+    'frequency' => [
+        'weekly' => 'በሳምንት',
+        'monthly' => 'በወር',
+        'quarterly' => 'በሩብ ዓመት',
+        'annually' => 'በዓመት',
+    ],
+    'onboarding_complete' => 'እድር በተሳካ ሁኔታ ተመዝግቧል!',
+];

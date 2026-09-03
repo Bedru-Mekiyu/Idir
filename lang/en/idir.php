@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'idir' => 'Idir',
+    'idirs' => 'Idirs',
+    'create_idir' => 'Create New Idir',
+    'idir_name' => 'Idir Name',
+    'membership_basis' => 'Membership Basis',
+    'membership_basis_help' => 'e.g. Neighborhood, Workplace, Church',
+    'region' => 'Region',
+    'sub_city' => 'Sub-City',
+    'woreda' => 'Woreda',
+    'settings' => 'Settings',
+    'basic_info' => 'Basic Information',
+    'dues_config' => 'Dues Configuration',
+    'payout_config' => 'Payout Configuration',
+    'review_confirm' => 'Review & Confirm',
+    'dues_amount' => 'Dues Amount',
+    'dues_frequency' => 'Dues Frequency',
+    'late_fee' => 'Late Fee Amount',
+    'grace_period' => 'Grace Period (Days)',
+    'vesting_period' => 'Vesting Period (Days)',
+    'required_approvals' => 'Required Approvals',
+    'payout_triggers' => 'Payout Triggers',
+    'fund_balance' => 'Fund Balance',
+    'frequency' => [
+        'weekly' => 'Weekly',
+        'monthly' => 'Monthly',
+        'quarterly' => 'Quarterly',
+        'annually' => 'Annually',
+    ],
+    'onboarding_complete' => 'Idir onboarded successfully!',
+];
