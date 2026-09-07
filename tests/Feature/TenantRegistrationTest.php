@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Filament\Pages\Tenancy\RegisterIdir;
 use App\Models\Idir;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -15,13 +16,14 @@ class TenantRegistrationTest extends TestCase
 
     public function test_user_can_register_new_tenant_idir_through_wizard(): void
     {
-        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('committee'));
+        Filament::setCurrentPanel(Filament::getPanel('committee'));
 
         $user = User::create([
             'name' => 'ተስፋዬ ግርማ',
             'email' => 'tesfaye@idir.et',
             'phone' => '0911776655',
             'phone_verified_at' => now(),
+            'can_create_idir' => true,
             'password' => bcrypt('password'),
         ]);
 

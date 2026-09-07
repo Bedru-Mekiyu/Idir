@@ -19,6 +19,7 @@ class IdirApprovalWorkflowTest extends TestCase
     use RefreshDatabase;
 
     protected User $founder;
+
     protected User $owner;
 
     protected function setUp(): void
@@ -29,6 +30,7 @@ class IdirApprovalWorkflowTest extends TestCase
             'name' => 'ዳዊት ከበደ ገብሬ',
             'phone' => '0911554433',
             'phone_verified_at' => now(),
+            'can_create_idir' => true,
             'password' => bcrypt('password'),
         ]);
 
