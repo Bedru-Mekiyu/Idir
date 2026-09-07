@@ -8,7 +8,7 @@ return [
     'chapa' => [
         'base_url' => env('CHAPA_BASE_URL', 'https://api.chapa.co/v1'),
         'secret_key' => env('CHAPA_SECRET_KEY'),
-        'webhook_secret' => env('CHAPA_WEBHOOK_SECRET'),
+        'webhook_secret' => env('CHAPA_WEBHOOK_SECRET', 'test-chapa-webhook-secret'),
     ],
 
     'afromessage' => [

@@ -12,7 +12,8 @@ use Filament\Widgets\ChartWidget;
 class FinancialOverviewChartWidget extends ChartWidget
 {
     protected static ?int $sort = 2;
-    protected int | string | array $columnSpan = 'full';
+
+    protected int|string|array $columnSpan = 'full';
 
     public function getHeading(): ?string
     {
@@ -24,7 +25,7 @@ class FinancialOverviewChartWidget extends ChartWidget
         $tenant = Filament::getTenant();
         $idirId = $tenant?->id;
 
-        if (!$idirId) {
+        if (! $idirId) {
             return [
                 'datasets' => [],
                 'labels' => [],
@@ -47,7 +48,7 @@ class FinancialOverviewChartWidget extends ChartWidget
                 ->where('amount', '>', 0)
                 ->where(function ($q) {
                     $q->whereNull('chapa_status')
-                      ->orWhere('chapa_status', ChapaStatus::Verified->value);
+                        ->orWhere('chapa_status', ChapaStatus::Verified->value);
                 })
                 ->sum('amount');
             $incomeData[] = (float) $income;
@@ -65,8 +66,8 @@ class FinancialOverviewChartWidget extends ChartWidget
                 [
                     'label' => 'የተሰበሰበ መዋጮ / ገቢ (Income in ETB)',
                     'data' => $incomeData,
-                    'backgroundColor' => 'rgba(16, 185, 129, 0.85)', // Emerald
-                    'borderColor' => '#059669',
+                    'backgroundColor' => 'rgba(161, 161, 170, 0.85)', // Indigo
+                    'borderColor' => '#a1a1aa',
                     'borderWidth' => 2,
                     'borderRadius' => 6,
                 ],

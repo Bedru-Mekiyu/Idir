@@ -13,6 +13,7 @@ class CreateClaim extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['status'] = ClaimStatus::Pending;
+
         return $data;
     }
 }

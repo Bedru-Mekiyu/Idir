@@ -21,6 +21,7 @@ class TelegramService
     {
         if (empty($this->botToken)) {
             Log::info("Telegram Message (Mock): chatId={$chatId}, msg={$message}");
+
             return [
                 'ok' => true,
                 'result' => [

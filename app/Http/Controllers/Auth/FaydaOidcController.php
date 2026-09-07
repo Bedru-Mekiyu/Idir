@@ -33,7 +33,7 @@ class FaydaOidcController extends Controller
         $state = $request->query('state');
         $savedState = $request->session()->pull('fayda_state');
 
-        if (!$code || ($state && $savedState && $state !== $savedState)) {
+        if (! $code || ($state && $savedState && $state !== $savedState)) {
             return redirect()->route('member.dashboard')->withErrors([
                 'fayda' => 'የፋይዳ ማረጋገጫ አልተሳካም። እባክዎ እንደገና ይሞክሩ።',
             ]);
@@ -42,7 +42,7 @@ class FaydaOidcController extends Controller
         $user = Auth::user();
         $member = $user?->member;
 
-        if (!$member) {
+        if (! $member) {
             return redirect()->route('member.dashboard');
         }
 

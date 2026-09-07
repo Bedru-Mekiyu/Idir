@@ -19,9 +19,13 @@ class PublicAuthController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
-            if (!$user->isPhoneVerified()) {
+            if (! $user->isPhoneVerified()) {
                 return redirect()->route('phone.verify');
             }
+            if (! $user->canCreateIdir() && $user->idirs()->count() === 0) {
+                return redirect()->route('access-request');
+            }
+
             return redirect('/committee');
         }
 
@@ -60,6 +64,7 @@ class PublicAuthController extends Controller
             'password' => Hash::make($validated['password']),
             'phone_verified_at' => null,
             'is_platform_owner' => false,
+            'can_create_idir' => false,
         ]);
 
         Auth::login($user);
@@ -77,11 +82,15 @@ class PublicAuthController extends Controller
     public function showVerifyPhoneForm()
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('register');
         }
 
         if ($user->isPhoneVerified()) {
+            if (! $user->canCreateIdir() && $user->idirs()->count() === 0) {
+                return redirect()->route('access-request');
+            }
+
             return redirect('/committee/new');
         }
 
@@ -105,8 +114,13 @@ class PublicAuthController extends Controller
         $user = Auth::user();
 
         if ($otpService->verifyOtp($user, $request->code)) {
-            return redirect('/committee/new')
-                ->with('success', 'ስልክዎ በተሳካ ሁኔታ ተረጋግጧል! አሁን አዲሱን እድርዎን መመዝገብ ይችላሉ።');
+            if ($user->canCreateIdir()) {
+                return redirect('/committee/new')
+                    ->with('success', 'ስልክዎ በተሳካ ሁኔታ ተረጋግጧል! አሁን አዲሱን እድርዎን መመዝገብ ይችላሉ።');
+            }
+
+            return redirect()->route('access-request')
+                ->with('status', 'ስልክዎ በተሳካ ሁኔታ ተረጋግጧል! እድር ለማስተዳደር እባክዎ የማኔጀርነት ፈቃድ ጥያቄዎን ያስገቡ።');
         }
 
         return back()->withErrors([
@@ -120,7 +134,7 @@ class PublicAuthController extends Controller
     public function resendOtp(OtpService $otpService)
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('register');
         }
 

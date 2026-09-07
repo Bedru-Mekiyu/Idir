@@ -99,7 +99,7 @@ class Member extends Model
 
     public function isCommitteeMember(): bool
     {
-        return !is_null($this->committee_role);
+        return ! is_null($this->committee_role);
     }
 
     public function isChair(): bool
@@ -119,11 +119,12 @@ class Member extends Model
 
     public function isVested(): bool
     {
-        if (!$this->relationLoaded('idir') || !$this->idir->relationLoaded('settings')) {
+        if (! $this->relationLoaded('idir') || ! $this->idir->relationLoaded('settings')) {
             $this->loadMissing('idir.settings');
         }
 
         $vestingDays = $this->idir?->settings?->vesting_period_days ?? 90;
+
         return Carbon::parse($this->join_date)->diffInDays(now()) >= $vestingDays;
     }
 }

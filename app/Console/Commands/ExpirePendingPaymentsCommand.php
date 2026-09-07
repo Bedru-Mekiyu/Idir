@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class ExpirePendingPaymentsCommand extends Command
 {
     protected $signature = 'idir:expire-pending-payments';
+
     protected $description = 'Expire digital payments that have been in pending state for more than 24 hours';
 
     public function handle(): int

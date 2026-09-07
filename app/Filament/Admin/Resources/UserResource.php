@@ -12,7 +12,9 @@ use Filament\Tables\Table;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
+
     protected static ?string $navigationLabel = 'የሲስተም ተጠቃሚዎች (All Users)';
 
     public static function getModelLabel(): string
@@ -45,6 +47,10 @@ class UserResource extends Resource
 
                 IconColumn::make('is_platform_owner')
                     ->label('የፕላትፎርም ባለቤት (Super Admin)')
+                    ->boolean(),
+
+                IconColumn::make('can_create_idir')
+                    ->label('እድር ማስተዳደር ይችላል (Can Manage)')
                     ->boolean(),
 
                 TextColumn::make('idirs.name')

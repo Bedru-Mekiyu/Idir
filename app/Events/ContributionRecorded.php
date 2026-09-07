@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\Contribution;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -19,7 +18,7 @@ class ContributionRecorded implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('idir.' . $this->contribution->idir_id),
+            new PrivateChannel('idir.'.$this->contribution->idir_id),
         ];
     }
 

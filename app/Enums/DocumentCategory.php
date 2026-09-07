@@ -11,6 +11,6 @@ enum DocumentCategory: string
 
     public function label(): string
     {
-        return __('document.categories.' . $this->value);
+        return __('document.categories.'.$this->value);
     }
 }

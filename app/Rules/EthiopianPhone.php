@@ -17,8 +17,9 @@ class EthiopianPhone implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             $fail(__('validation.phone_et'));
+
             return;
         }
 
@@ -27,8 +28,8 @@ class EthiopianPhone implements ValidationRule
         // Regex pattern for valid Ethiopian mobile numbers (Ethio Telecom 09/071, Safaricom 07)
         $pattern = '/^(?:\+251|251|0)?(9\d{8}|7\d{8})$/';
 
-        if (!preg_match($pattern, $cleaned)) {
-            $fail(__('validation.phone_et') . ' (ትክክለኛ የኢትዮጵያ ሞባይል ስልክ ቁጥር ያስገቡ፣ ለምሳሌ 0911223344 ወይም 0711223344)');
+        if (! preg_match($pattern, $cleaned)) {
+            $fail(__('validation.phone_et').' (ትክክለኛ የኢትዮጵያ ሞባይል ስልክ ቁጥር ያስገቡ፣ ለምሳሌ 0911223344 ወይም 0711223344)');
         }
     }
 }

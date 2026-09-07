@@ -8,15 +8,20 @@ use App\Services\AfroMessageService;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class IdirResource extends Resource
 {
     protected static ?string $model = Idir::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-library';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-library';
+
     protected static ?string $navigationLabel = 'እድሮች (All Idirs)';
 
     public static function getModelLabel(): string
@@ -32,6 +37,7 @@ class IdirResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         $count = Idir::where('status', 'pending_approval')->count();
+
         return $count > 0 ? (string) $count : null;
     }
 
@@ -40,35 +46,35 @@ class IdirResource extends Resource
         return 'warning';
     }
 
-    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
+    public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                \Filament\Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->label('የእድር ስም (Idir Name)')
                     ->disabled(),
-                \Filament\Forms\Components\TextInput::make('membership_basis')
+                TextInput::make('membership_basis')
                     ->label('የአባልነት መሠረት (Membership Basis)')
                     ->disabled(),
-                \Filament\Forms\Components\TextInput::make('region')
+                TextInput::make('region')
                     ->label('ክልል / ከተማ')
                     ->disabled(),
-                \Filament\Forms\Components\TextInput::make('sub_city')
+                TextInput::make('sub_city')
                     ->label('ክፍለ ከተማ')
                     ->disabled(),
-                \Filament\Forms\Components\TextInput::make('woreda')
+                TextInput::make('woreda')
                     ->label('ወረዳ')
                     ->disabled(),
-                \Filament\Forms\Components\TextInput::make('status')
+                TextInput::make('status')
                     ->label('ሁኔታ (Status)')
                     ->disabled(),
-                \Filament\Forms\Components\TextInput::make('settings.dues_amount')
+                TextInput::make('settings.dues_amount')
                     ->label('ወርሃዊ መዋጮ (Dues Amount)')
                     ->disabled(),
-                \Filament\Forms\Components\TextInput::make('settings.fund_balance')
+                TextInput::make('settings.fund_balance')
                     ->label('የፈንድ መጠን (Fund Balance ETB)')
                     ->disabled(),
-                \Filament\Forms\Components\Textarea::make('rejection_reason')
+                Textarea::make('rejection_reason')
                     ->label('የውድቅ የተደረገበት ምክንያት (Rejection Reason)')
                     ->visible(fn (?Idir $record) => $record?->isRejected())
                     ->disabled(),
@@ -100,7 +106,8 @@ class IdirResource extends Resource
 
                 TextColumn::make('settings.fund_balance')
                     ->label('የፈንድ መጠን (ETB)')
-                    ->money('ETB')
+                    // Deterministic currency formatting that does not require the intl extension.
+                    ->formatStateUsing(fn ($state): string => 'ETB '.number_format((float) $state, 2))
                     ->sortable(),
 
                 TextColumn::make('status')
@@ -229,7 +236,7 @@ class IdirResource extends Resource
                     }),
             ])
             ->filters([
-                \Filament\Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label('ሁኔታ (Status)')
                     ->options([
                         'pending_approval' => 'በማረጋገጥ ላይ (Pending Approval)',
@@ -237,7 +244,8 @@ class IdirResource extends Resource
                         'suspended' => 'የታገደ (Suspended)',
                         'rejected' => 'ውድቅ የተደረገ (Rejected)',
                     ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getPages(): array

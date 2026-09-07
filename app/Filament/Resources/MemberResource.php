@@ -7,10 +7,10 @@ use App\Enums\MemberStatus;
 use App\Filament\Resources\MemberResource\Pages;
 use App\Models\Member;
 use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -26,8 +26,11 @@ use Filament\Tables\Table;
 class MemberResource extends Resource
 {
     protected static ?string $model = Member::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
-    protected static string | \UnitEnum | null $navigationGroup = 'የአባላት አስተዳደር';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'የአባላት አስተዳደር';
+
     protected static ?int $navigationSort = 1;
 
     public static function getModelLabel(): string
@@ -42,7 +45,8 @@ class MemberResource extends Resource
 
     public static function canViewAny(): bool
     {
-        $tenant = \Filament\Facades\Filament::getTenant();
+        $tenant = Filament::getTenant();
+
         return $tenant && $tenant->isActive();
     }
 
@@ -81,7 +85,7 @@ class MemberResource extends Resource
                         CommitteeRole::Secretary->value => __('member.role.secretary'),
                         CommitteeRole::Treasurer->value => __('member.role.treasurer'),
                     ])
-                    ->disabled(fn () => !auth()->user()?->member?->isChair())
+                    ->disabled(fn () => ! auth()->user()?->member?->isChair())
                     ->helperText(fn () => auth()->user()?->member?->isChair() ? null : 'የስራ ድርሻ መቀየር የሚችለው የእድሩ ሰብሳቢ ብቻ ነው።')
                     ->nullable(),
                 TextInput::make('fayda_id')
@@ -166,7 +170,7 @@ class MemberResource extends Resource
                             ->selectablePlaceholder(false),
                     ])
                     ->action(function (Member $record, array $data) {
-                        $newRole = !empty($data['committee_role']) ? CommitteeRole::tryFrom($data['committee_role']) : null;
+                        $newRole = ! empty($data['committee_role']) ? CommitteeRole::tryFrom($data['committee_role']) : null;
 
                         // Block demoting the last chair of the idir
                         if ($record->isChair() && $newRole !== CommitteeRole::Chair) {
@@ -180,6 +184,7 @@ class MemberResource extends Resource
                                     ->title(__('member.role_change_blocked_last_chair'))
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
                         }
@@ -215,18 +220,19 @@ class MemberResource extends Resource
                             ])
                             ->default('member')
                             ->required(),
-                        \Filament\Forms\Components\Checkbox::make('confirm_handover')
+                        Checkbox::make('confirm_handover')
                             ->label(__('member.handover_confirmation'))
                             ->required()
                             ->rules(['accepted']),
                     ])
                     ->action(function (Member $record, array $data) {
                         $currentChair = auth()->user()?->member;
-                        if (!$currentChair || !$currentChair->isChair() || $currentChair->idir_id !== $record->idir_id) {
+                        if (! $currentChair || ! $currentChair->isChair() || $currentChair->idir_id !== $record->idir_id) {
                             Notification::make()
                                 ->title('ይህንን እርምጃ ለመፈጸም ፈቃድ የለዎትም።')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 
@@ -279,6 +285,7 @@ class MemberResource extends Resource
                                     ->title(__('member.last_chair_protection'))
                                     ->danger()
                                     ->send();
+
                                 return;
                             }
                         }
@@ -351,6 +358,7 @@ class MemberResource extends Resource
                                 ->title(__('member.warning_required_first'))
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 
@@ -366,7 +374,7 @@ class MemberResource extends Resource
                             ->success()
                             ->send();
                     })
-                    ->visible(fn (Member $record) => $record->status === MemberStatus::InArrears && !is_null($record->exclusion_warning_sent_at)),
+                    ->visible(fn (Member $record) => $record->status === MemberStatus::InArrears && ! is_null($record->exclusion_warning_sent_at)),
             ])
             ->bulkActions([
                 // Physical mass deletion is removed to guarantee financial and historical ledger integrity

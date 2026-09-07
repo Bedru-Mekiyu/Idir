@@ -2,8 +2,10 @@
 
 namespace App\Policies;
 
+use App\Models\Idir;
 use App\Models\Member;
 use App\Models\User;
+use Filament\Facades\Filament;
 
 class MemberPolicy
 {
@@ -16,8 +18,8 @@ class MemberPolicy
             return null;
         }
 
-        $tenant = \Filament\Facades\Filament::getTenant();
-        $idirId = $member?->idir_id ?? ($tenant instanceof \App\Models\Idir ? $tenant->id : null);
+        $tenant = Filament::getTenant();
+        $idirId = $member?->idir_id ?? ($tenant instanceof Idir ? $tenant->id : null);
 
         if ($idirId) {
             $matched = $user->members()->where('idir_id', $idirId)->first();
@@ -36,7 +38,7 @@ class MemberPolicy
         }
 
         $userMember = $this->getMemberForContext($user, $member);
-        if (!$userMember || !$userMember->isCommitteeMember()) {
+        if (! $userMember || ! $userMember->isCommitteeMember()) {
             return false;
         }
 
@@ -78,6 +80,7 @@ class MemberPolicy
         }
 
         $userMember = $this->getMemberForContext($user, $member);
+
         return $userMember && $userMember->isChair() && $userMember->idir_id === $member->idir_id;
     }
 
@@ -88,6 +91,7 @@ class MemberPolicy
         }
 
         $userMember = $this->getMemberForContext($user, $member);
+
         return $userMember && $userMember->isChair() && $userMember->idir_id === $member->idir_id && $userMember->id !== $member->id;
     }
 
@@ -98,6 +102,7 @@ class MemberPolicy
         }
 
         $userMember = $this->getMemberForContext($user, $member);
+
         return $userMember && $userMember->isChair() && $userMember->idir_id === $member->idir_id;
     }
 
@@ -126,9 +131,10 @@ class MemberPolicy
         }
 
         $userMember = $this->getMemberForContext($user, $member);
-        return $userMember 
+
+        return $userMember
             && ($userMember->isChair() || $userMember->isSecretary())
             && $userMember->idir_id === $member->idir_id
-            && !is_null($member->exclusion_warning_sent_at);
+            && ! is_null($member->exclusion_warning_sent_at);
     }
 }

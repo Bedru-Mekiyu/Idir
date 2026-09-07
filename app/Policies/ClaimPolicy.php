@@ -15,14 +15,14 @@ class ClaimPolicy
 
     public function view(User $user, Claim $claim): bool
     {
-        return ($user->member?->isCommitteeMember() ?? false) 
+        return ($user->member?->isCommitteeMember() ?? false)
             || ($user->member?->id === $claim->member_id);
     }
 
     public function create(User $user): bool
     {
         // Any active member who meets vesting can file
-        return !is_null($user->member);
+        return ! is_null($user->member);
     }
 
     public function approve(User $user, Claim $claim): bool

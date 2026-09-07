@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CommitteeRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -55,7 +56,7 @@ class Idir extends Model
 
     public function founder(): ?Member
     {
-        return $this->members()->where('committee_role', \App\Enums\CommitteeRole::Chair)->first();
+        return $this->members()->where('committee_role', CommitteeRole::Chair)->first();
     }
 
     public function settings(): HasOne

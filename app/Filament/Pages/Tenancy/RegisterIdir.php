@@ -2,7 +2,8 @@
 
 namespace App\Filament\Pages\Tenancy;
 
-use App\Enums\DuesFrequency;
+use App\Enums\CommitteeRole;
+use App\Enums\MemberStatus;
 use App\Models\ContributionRule;
 use App\Models\Idir;
 use App\Models\IdirSetting;
@@ -11,11 +12,13 @@ use App\Models\PayoutTriggerType;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Pages\Tenancy\RegisterTenant;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 
 class RegisterIdir extends RegisterTenant
 {
@@ -28,8 +31,21 @@ class RegisterIdir extends RegisterTenant
     {
         parent::mount();
 
-        if (auth()->check() && !auth()->user()->isPhoneVerified()) {
-            redirect()->route('phone.verify')->send();
+        if (auth()->check()) {
+            $user = auth()->user();
+
+            if (! $user->isPhoneVerified()) {
+                redirect()->route('phone.verify')->send();
+
+                return;
+            }
+
+            if (! $user->canCreateIdir()) {
+                session()->flash('warning', 'እድር ከመመዝገብዎ በፊት የፕላትፎርም ባለቤቱ ፈቃድ ያስፈልጋል። ጥያቄዎ በግምገማ ላይ ነው።');
+                redirect()->route('access-request')->send();
+
+                return;
+            }
         }
     }
 
@@ -112,8 +128,8 @@ class RegisterIdir extends RegisterTenant
                                 ->columns(1),
                         ]),
                 ])
-                ->submitAction(new \Illuminate\Support\HtmlString('<button type="submit" wire:loading.attr="disabled" class="fi-btn fi-btn-size-md fi-btn-color-primary px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-lg shadow transition">እድር መዝግብ (Register Idir)</button>'))
-                ->columnSpanFull(),
+                    ->submitAction(new HtmlString('<button type="submit" wire:loading.attr="disabled" class="fi-btn fi-btn-size-md fi-btn-color-primary px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-lg shadow transition">እድር መዝግብ (Register Idir)</button>'))
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -182,11 +198,11 @@ class RegisterIdir extends RegisterTenant
                 'full_name' => $user->name,
                 'phone' => $user->phone ?? '0911000000',
                 'join_date' => now()->toDateString(),
-                'status' => \App\Enums\MemberStatus::Active,
-                'committee_role' => \App\Enums\CommitteeRole::Chair,
+                'status' => MemberStatus::Active,
+                'committee_role' => CommitteeRole::Chair,
             ]);
 
-            \Filament\Notifications\Notification::make()
+            Notification::make()
                 ->title('የእድር ምዝገባ ጥያቄዎ ቀርቧል!')
                 ->body("የ {$idir->name} ምዝገባ በፕላትፎርም አስተዳዳሪው እንዲጸድቅ ተልኳል። ውሳኔው ሲሰጥ በኤስኤምኤስ ይደርስዎታል።")
                 ->warning()

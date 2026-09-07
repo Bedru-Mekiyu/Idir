@@ -12,6 +12,7 @@ use Illuminate\Console\Command;
 class CheckArrearsCommand extends Command
 {
     protected $signature = 'idir:check-arrears';
+
     protected $description = 'Check members dues payment status and mark overdue members as in arrears';
 
     public function handle(): int
@@ -33,12 +34,12 @@ class CheckArrearsCommand extends Command
                 ->where('amount', '>', 0)
                 ->where(function ($q) {
                     $q->whereNull('chapa_status')
-                      ->orWhere('chapa_status', ChapaStatus::Verified->value);
+                        ->orWhere('chapa_status', ChapaStatus::Verified->value);
                 })
                 ->exists();
 
             // If day of month is past grace period and hasn't paid, flag in_arrears
-            if (!$hasPaid && now()->day > $graceDays) {
+            if (! $hasPaid && now()->day > $graceDays) {
                 // Check if joined this month
                 if ($member->join_date && Carbon::parse($member->join_date)->isCurrentMonth()) {
                     continue;

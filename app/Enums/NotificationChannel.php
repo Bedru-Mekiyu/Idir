@@ -10,6 +10,6 @@ enum NotificationChannel: string
 
     public function label(): string
     {
-        return __('notification.channel.' . $this->value);
+        return __('notification.channel.'.$this->value);
     }
 }

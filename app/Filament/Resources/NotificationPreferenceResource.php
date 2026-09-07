@@ -7,6 +7,7 @@ use App\Filament\Resources\NotificationPreferenceResource\Pages;
 use App\Models\NotificationPreference;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -18,8 +19,11 @@ use Filament\Tables\Table;
 class NotificationPreferenceResource extends Resource
 {
     protected static ?string $model = NotificationPreference::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-bell';
-    protected static string | \UnitEnum | null $navigationGroup = 'የኮሚቴ አስተዳደር';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bell';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'የኮሚቴ አስተዳደር';
+
     protected static ?int $navigationSort = 3;
 
     public static function getModelLabel(): string
@@ -34,7 +38,8 @@ class NotificationPreferenceResource extends Resource
 
     public static function canViewAny(): bool
     {
-        $tenant = \Filament\Facades\Filament::getTenant();
+        $tenant = Filament::getTenant();
+
         return $tenant && $tenant->isActive();
     }
 

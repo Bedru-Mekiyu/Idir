@@ -2,6 +2,16 @@
 
 use Illuminate\Support\Str;
 
+// Guard against environment variables that are set to arbitrary values on
+// some developer machines (e.g. Git for Windows exports SESSION_PATH as its
+// own install directory). Cookie paths must be absolute, and a literal
+// "null" domain would be attached to the cookie and rejected by browsers.
+$sessionPath = env('SESSION_PATH', '/');
+$sessionPath = is_string($sessionPath) && str_starts_with($sessionPath, '/') ? $sessionPath : '/';
+
+$sessionDomain = env('SESSION_DOMAIN');
+$sessionDomain = ($sessionDomain === null || $sessionDomain === '' || $sessionDomain === 'null') ? null : $sessionDomain;
+
 return [
 
     /*
@@ -143,7 +153,7 @@ return [
     |
     */
 
-    'path' => env('SESSION_PATH', '/'),
+    'path' => $sessionPath,
 
     /*
     |--------------------------------------------------------------------------
@@ -156,7 +166,7 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN'),
+    'domain' => $sessionDomain,
 
     /*
     |--------------------------------------------------------------------------

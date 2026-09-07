@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn (Request $request) => route('member.login'));
+
+        // Chapa's payment gateway posts webhooks without a CSRF token, so the
+        // callback must be exempted. The signature itself is verified (HMAC)
+        // before any payload is processed.
+        $middleware->validateCsrfTokens(except: ['api/chapa/webhook']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -12,6 +12,7 @@ class CreateMeeting extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['recorded_by_member_id'] = auth()->user()?->member?->id;
+
         return $data;
     }
 }

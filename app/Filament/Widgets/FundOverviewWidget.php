@@ -21,14 +21,14 @@ class FundOverviewWidget extends BaseWidget
         $tenant = Filament::getTenant();
         $idirId = $tenant?->id;
 
-        if (!$idirId) {
+        if (! $idirId) {
             return [];
         }
 
         $totalContributions = (float) Contribution::where('idir_id', $idirId)
             ->where(function ($q) {
                 $q->whereNull('chapa_status')
-                  ->orWhere('chapa_status', 'verified');
+                    ->orWhere('chapa_status', 'verified');
             })
             ->sum('amount');
 
@@ -40,7 +40,7 @@ class FundOverviewWidget extends BaseWidget
         $pendingClaimsCount = Claim::where('idir_id', $idirId)->whereIn('status', [ClaimStatus::Pending, ClaimStatus::UnderReview])->count();
 
         return [
-            Stat::make(__('idir.fund_balance'), number_format($fundBalance, 2) . ' ብር')
+            Stat::make(__('idir.fund_balance'), number_format($fundBalance, 2).' ብር')
                 ->description('የእድሩ አጠቃላይ የተጣራ ቀሪ ገንዘብ')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color($fundBalance >= 0 ? 'success' : 'danger'),

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\NotificationChannel;
 use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
+use App\Models\Idir;
 use App\Models\Member;
 use App\Models\NotificationEvent;
 use App\Models\NotificationPreference;
@@ -15,13 +16,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
 class SendNotificationJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public array $backoff = [30, 60, 120];
 
     public function __construct(
@@ -34,16 +35,18 @@ class SendNotificationJob implements ShouldQueue
     public function handle(AfroMessageService $sms, TelegramService $telegram): void
     {
         $member = $this->memberId ? Member::with('idir')->find($this->memberId) : null;
-        $idir = $member ? $member->idir : \App\Models\Idir::find($this->idirId);
+        $idir = $member ? $member->idir : Idir::find($this->idirId);
 
-        if (!$idir) return;
+        if (! $idir) {
+            return;
+        }
 
         $pref = NotificationPreference::where('idir_id', $this->idirId)
             ->where('event_type', $this->type->value)
             ->first();
 
         // Default templates if no custom preference exists
-        $template = $pref?->template_am ?? "ውድ :member_name፣ ከ :idir_name ማሳወቂያ ተልኳል።";
+        $template = $pref?->template_am ?? 'ውድ :member_name፣ ከ :idir_name ማሳወቂያ ተልኳል።';
 
         // Merge default placeholders
         $vars = array_merge([

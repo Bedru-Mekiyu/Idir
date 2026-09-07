@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\Member;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -23,8 +24,11 @@ use Illuminate\Support\Facades\Storage;
 class DocumentResource extends Resource
 {
     protected static ?string $model = Document::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-folder';
-    protected static string | \UnitEnum | null $navigationGroup = 'የኮሚቴ አስተዳደር';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-folder';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'የኮሚቴ አስተዳደር';
+
     protected static ?int $navigationSort = 2;
 
     public static function getModelLabel(): string
@@ -39,7 +43,8 @@ class DocumentResource extends Resource
 
     public static function canViewAny(): bool
     {
-        $tenant = \Filament\Facades\Filament::getTenant();
+        $tenant = Filament::getTenant();
+
         return $tenant && $tenant->isActive();
     }
 
@@ -120,7 +125,7 @@ class DocumentResource extends Resource
                             ->warning()
                             ->send();
                     })
-                    ->visible(fn (Document $record) => !$record->deletion_requested),
+                    ->visible(fn (Document $record) => ! $record->deletion_requested),
                 Action::make('confirm_deletion')
                     ->label(__('document.confirm_deletion'))
                     ->icon('heroicon-o-x-mark')
@@ -135,6 +140,7 @@ class DocumentResource extends Resource
                                 ->title(__('document.different_member_required'))
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 

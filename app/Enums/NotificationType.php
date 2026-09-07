@@ -17,6 +17,6 @@ enum NotificationType: string
 
     public function label(): string
     {
-        return __('notification.type.' . $this->value);
+        return __('notification.type.'.$this->value);
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Meeting;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -21,8 +22,11 @@ use Filament\Tables\Table;
 class MeetingResource extends Resource
 {
     protected static ?string $model = Meeting::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-calendar-days';
-    protected static string | \UnitEnum | null $navigationGroup = 'የኮሚቴ አስተዳደር';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'የኮሚቴ አስተዳደር';
+
     protected static ?int $navigationSort = 1;
 
     public static function getModelLabel(): string
@@ -37,7 +41,8 @@ class MeetingResource extends Resource
 
     public static function canViewAny(): bool
     {
-        $tenant = \Filament\Facades\Filament::getTenant();
+        $tenant = Filament::getTenant();
+
         return $tenant && $tenant->isActive();
     }
 

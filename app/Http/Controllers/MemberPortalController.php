@@ -10,6 +10,7 @@ use App\Models\PayoutTriggerType;
 use App\Services\LedgerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class MemberPortalController extends Controller
 {
@@ -19,7 +20,9 @@ class MemberPortalController extends Controller
     protected function getMember(): ?Member
     {
         $user = Auth::user();
-        if (!$user) return null;
+        if (! $user) {
+            return null;
+        }
 
         return Member::with(['idir.settings', 'contributions' => fn ($q) => $q->latest(), 'claims.triggerType'])
             ->where('user_id', $user->id)
@@ -32,11 +35,11 @@ class MemberPortalController extends Controller
     public function dashboard()
     {
         $member = $this->getMember();
-        if (!$member) {
+        if (! $member) {
             return redirect('/committee');
         }
 
-        if (!$member->idir->isActive()) {
+        if (! $member->idir->isActive()) {
             return response()->view('errors.suspended', ['idir' => $member->idir], 403);
         }
 
@@ -53,7 +56,7 @@ class MemberPortalController extends Controller
     public function showClaimForm()
     {
         $member = $this->getMember();
-        if (!$member) {
+        if (! $member) {
             return redirect('/committee');
         }
 
@@ -71,17 +74,22 @@ class MemberPortalController extends Controller
     public function submitClaim(Request $request)
     {
         $member = $this->getMember();
-        if (!$member) {
+        if (! $member) {
             abort(403);
         }
 
         // Vesting check
-        if (!app(LedgerService::class)->isVested($member)) {
+        if (! app(LedgerService::class)->isVested($member)) {
             return back()->withErrors(['vesting' => __('member.vesting_not_met')]);
         }
 
         $validated = $request->validate([
-            'payout_trigger_type_id' => 'required|exists:payout_trigger_types,id',
+            'payout_trigger_type_id' => [
+                'required',
+                // The trigger must belong to the member's own idir to prevent
+                // cross-tenant references (foreign payout defaults leaking in).
+                Rule::exists('payout_trigger_types', 'id')->where('idir_id', $member->idir_id),
+            ],
             'requested_amount' => 'nullable|numeric|min:1',
             'description' => 'required|string|min:5',
             'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -107,11 +115,22 @@ class MemberPortalController extends Controller
 
     /**
      * Show printable official Idir contribution receipt.
+     *
+     * Accessible only to the contributing member themselves, or to a committee
+     * member of the same idir (who legitimately prints official receipts).
      */
     public function showReceipt(Contribution $contribution)
     {
         $contribution->load(['member', 'paidBy', 'recordedBy', 'idir.settings']);
-        
+
+        $viewer = $this->getMember();
+        $isOwner = $contribution->member?->user_id === auth()->id();
+        $isCommitteeOfIdir = $viewer !== null
+            && $viewer->idir_id === $contribution->idir_id
+            && $viewer->isCommitteeMember();
+
+        abort_unless($isOwner || $isCommitteeOfIdir, 403);
+
         return view('member.receipt', [
             'contribution' => $contribution,
             'member' => $contribution->member,

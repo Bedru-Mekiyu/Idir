@@ -8,10 +8,10 @@ use App\Filament\Resources\ClaimResource\Pages;
 use App\Models\Claim;
 use App\Models\ClaimApproval;
 use App\Models\Member;
-use App\Models\PayoutTriggerType;
 use App\Services\LedgerService;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -26,8 +26,11 @@ use Filament\Tables\Table;
 class ClaimResource extends Resource
 {
     protected static ?string $model = Claim::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-check';
-    protected static string | \UnitEnum | null $navigationGroup = 'የገንዘብና ሒሳብ መዝገብ';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-check';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'የገንዘብና ሒሳብ መዝገብ';
+
     protected static ?int $navigationSort = 2;
 
     public static function getModelLabel(): string
@@ -42,7 +45,8 @@ class ClaimResource extends Resource
 
     public static function canViewAny(): bool
     {
-        $tenant = \Filament\Facades\Filament::getTenant();
+        $tenant = Filament::getTenant();
+
         return $tenant && $tenant->isActive();
     }
 
@@ -60,8 +64,8 @@ class ClaimResource extends Resource
                         function () {
                             return function ($attribute, $value, $fail) {
                                 $member = Member::find($value);
-                                if ($member && !app(LedgerService::class)->isVested($member)) {
-                                    $fail(__('member.vesting_not_met') . ' (አባል የብቃት ጊዜውን አላሟላም)');
+                                if ($member && ! app(LedgerService::class)->isVested($member)) {
+                                    $fail(__('member.vesting_not_met').' (አባል የብቃት ጊዜውን አላሟላም)');
                                 }
                             };
                         },
@@ -104,8 +108,9 @@ class ClaimResource extends Resource
                     ->badge(),
                 TextColumn::make('requested_amount')
                     ->label(__('claim.requested_amount'))
-                    ->money('ETB')
-                    ->placeholder(fn (Claim $record) => $record->triggerType?->default_payout_amount ? number_format($record->triggerType->default_payout_amount, 2) . ' ብር (ነባሪ)' : 'አልተወሰነም'),
+                    // Deterministic currency formatting that does not require the intl extension.
+                    ->formatStateUsing(fn ($state): string => 'ETB '.number_format((float) $state, 2))
+                    ->placeholder(fn (Claim $record) => $record->triggerType?->default_payout_amount ? number_format($record->triggerType->default_payout_amount, 2).' ብር (ነባሪ)' : 'አልተወሰነም'),
                 TextColumn::make('status')
                     ->label(__('claim.status.label'))
                     ->badge()
@@ -140,6 +145,7 @@ class ClaimResource extends Resource
                     ->requiresConfirmation()
                     ->form(function (Claim $record) {
                         $proposed = $record->getProposedAmount();
+
                         return [
                             TextInput::make('approved_amount')
                                 ->label(__('claim.proposed_amount'))
@@ -157,14 +163,16 @@ class ClaimResource extends Resource
                         $user = auth()->user();
                         $member = $user->member ?? Member::where('user_id', $user->id)->first();
 
-                        if (!$member) {
+                        if (! $member) {
                             Notification::make()->title('የኮሚቴ አባል መሆን አለብዎት')->danger()->send();
+
                             return;
                         }
 
                         // Duplicate check
                         if ($record->approvals()->where('approver_member_id', $member->id)->exists()) {
                             Notification::make()->title(__('claim.already_approved'))->warning()->send();
+
                             return;
                         }
 
@@ -229,8 +237,9 @@ class ClaimResource extends Resource
                         $user = auth()->user();
                         $member = $user->member ?? Member::where('user_id', $user->id)->first();
 
-                        if (!$member) {
+                        if (! $member) {
                             Notification::make()->title('የኮሚቴ አባል መሆን አለብዎት')->danger()->send();
+
                             return;
                         }
 

@@ -53,6 +53,7 @@ class OtpService
             $user->markPhoneAsVerified();
             Cache::forget($cacheKey);
             Log::info("Phone verified successfully for User {$user->id} ({$user->phone})");
+
             return true;
         }
 

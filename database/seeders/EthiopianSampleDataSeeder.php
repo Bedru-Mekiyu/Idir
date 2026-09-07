@@ -45,6 +45,7 @@ class EthiopianSampleDataSeeder extends Seeder
             'phone_verified_at' => now(),
             'password' => Hash::make('password'),
             'is_platform_owner' => true,
+            'can_create_idir' => true,
         ]);
 
         // 1. Create Committee Users
@@ -55,6 +56,7 @@ class EthiopianSampleDataSeeder extends Seeder
             'phone_verified_at' => now(),
             'password' => Hash::make('password'),
             'is_platform_owner' => false,
+            'can_create_idir' => true,
         ]);
 
         $treasurerUser = User::create([
@@ -247,7 +249,9 @@ class EthiopianSampleDataSeeder extends Seeder
         $totalContributions = 0;
 
         foreach ($createdMembers as $idx => $member) {
-            if ($member->status === MemberStatus::Excluded) continue;
+            if ($member->status === MemberStatus::Excluded) {
+                continue;
+            }
 
             $periodsToPay = ($member->status === MemberStatus::InArrears) ? ['2026-05', '2026-06'] : $periods;
 
@@ -261,7 +265,7 @@ class EthiopianSampleDataSeeder extends Seeder
                     'method' => $isChapa ? PaymentMethod::Chapa : PaymentMethod::Cash,
                     'type' => ContributionType::Cash,
                     'period_covered' => $p,
-                    'chapa_tx_ref' => $isChapa ? 'IDIR-' . $idir1->id . '-' . $member->id . '-' . Str::uuid() : null,
+                    'chapa_tx_ref' => $isChapa ? 'IDIR-'.$idir1->id.'-'.$member->id.'-'.Str::uuid() : null,
                     'chapa_status' => $isChapa ? ChapaStatus::Verified : null,
                     'notes' => $isChapa ? 'በቴሌብር በቻፓ የተከፈለ' : 'በጥሬ ገንዘብ የተከፈለ',
                     'is_correction' => false,

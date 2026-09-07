@@ -10,6 +10,6 @@ enum MeetingType: string
 
     public function label(): string
     {
-        return __('meeting.type.' . $this->value);
+        return __('meeting.type.'.$this->value);
     }
 }

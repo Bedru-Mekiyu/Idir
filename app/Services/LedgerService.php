@@ -4,15 +4,12 @@ namespace App\Services;
 
 use App\Enums\ChapaStatus;
 use App\Enums\ClaimStatus;
-use App\Enums\ContributionType;
 use App\Enums\MemberStatus;
-use App\Enums\PaymentMethod;
 use App\Models\Claim;
 use App\Models\Contribution;
 use App\Models\Disbursement;
 use App\Models\IdirSetting;
 use App\Models\Member;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -88,7 +85,7 @@ class LedgerService
 
     /**
      * Record a disbursement. Only callable when a claim is fully approved.
-     * 
+     *
      * Business Rule (Fix #3):
      * The final disbursements.amount is the amount from the LAST (deciding) approval —
      * i.e., whichever approval crosses the required-approvals threshold sets the paid amount.
@@ -141,7 +138,7 @@ class LedgerService
         $totalContributions = (float) Contribution::where('idir_id', $idirId)
             ->where(function ($q) {
                 $q->whereNull('chapa_status')
-                  ->orWhere('chapa_status', ChapaStatus::Verified->value);
+                    ->orWhere('chapa_status', ChapaStatus::Verified->value);
             })
             ->sum('amount');
 
@@ -172,7 +169,7 @@ class LedgerService
     public function updateMemberArrearsStatus(int $memberId): void
     {
         $member = Member::with('idir.settings')->find($memberId);
-        if (!$member || $member->status === MemberStatus::Excluded) {
+        if (! $member || $member->status === MemberStatus::Excluded) {
             return;
         }
 
@@ -182,7 +179,7 @@ class LedgerService
             ->where('amount', '>', 0)
             ->where(function ($q) {
                 $q->whereNull('chapa_status')
-                  ->orWhere('chapa_status', ChapaStatus::Verified->value);
+                    ->orWhere('chapa_status', ChapaStatus::Verified->value);
             })
             ->exists();
 

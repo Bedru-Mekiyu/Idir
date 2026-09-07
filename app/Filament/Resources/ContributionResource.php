@@ -7,10 +7,10 @@ use App\Enums\ContributionType;
 use App\Enums\PaymentMethod;
 use App\Filament\Resources\ContributionResource\Pages;
 use App\Models\Contribution;
-use App\Models\Member;
 use App\Services\LedgerService;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -26,8 +26,11 @@ use Filament\Tables\Table;
 class ContributionResource extends Resource
 {
     protected static ?string $model = Contribution::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
-    protected static string | \UnitEnum | null $navigationGroup = 'የገንዘብና ሒሳብ መዝገብ';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'የገንዘብና ሒሳብ መዝገብ';
+
     protected static ?int $navigationSort = 1;
 
     public static function getModelLabel(): string
@@ -42,7 +45,8 @@ class ContributionResource extends Resource
 
     public static function canViewAny(): bool
     {
-        $tenant = \Filament\Facades\Filament::getTenant();
+        $tenant = Filament::getTenant();
+
         return $tenant && $tenant->isActive();
     }
 
@@ -113,7 +117,8 @@ class ContributionResource extends Resource
                     ->sortable(),
                 TextColumn::make('amount')
                     ->label(__('contribution.amount'))
-                    ->money('ETB')
+                    // Deterministic currency formatting that does not require the intl extension.
+                    ->formatStateUsing(fn ($state): string => 'ETB '.number_format((float) $state, 2))
                     ->sortable()
                     ->color(fn (Contribution $record) => $record->amount < 0 ? 'danger' : 'success'),
                 TextColumn::make('method')
@@ -180,7 +185,7 @@ class ContributionResource extends Resource
                             ->success()
                             ->send();
                     })
-                    ->visible(fn (Contribution $record) => !$record->is_correction && $record->amount > 0),
+                    ->visible(fn (Contribution $record) => ! $record->is_correction && $record->amount > 0),
             ]);
     }
 

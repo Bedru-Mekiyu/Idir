@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Log;
 class AfroMessageService
 {
     protected string $baseUrl;
+
     protected ?string $token;
+
     protected ?string $senderId;
 
     public function __construct()
@@ -27,6 +29,7 @@ class AfroMessageService
 
         if (empty($this->token)) {
             Log::info("AfroMessage SMS (Mock): to={$normalizedPhone}, msg={$message}");
+
             return [
                 'acknowledge' => 'success',
                 'response' => [
@@ -60,17 +63,17 @@ class AfroMessageService
         $cleaned = preg_replace('/[^0-9]/', '', $phone);
 
         if (str_starts_with($cleaned, '09') || str_starts_with($cleaned, '07')) {
-            return '+251' . substr($cleaned, 1);
+            return '+251'.substr($cleaned, 1);
         }
 
         if (str_starts_with($cleaned, '251')) {
-            return '+' . $cleaned;
+            return '+'.$cleaned;
         }
 
         if (strlen($cleaned) === 9 && ($cleaned[0] === '9' || $cleaned[0] === '7')) {
-            return '+251' . $cleaned;
+            return '+251'.$cleaned;
         }
 
-        return '+' . $cleaned;
+        return '+'.$cleaned;
     }
 }

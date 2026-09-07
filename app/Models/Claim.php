@@ -64,11 +64,11 @@ class Claim extends Model
      */
     public function getProposedAmount(): ?float
     {
-        if (!is_null($this->requested_amount)) {
+        if (! is_null($this->requested_amount)) {
             return (float) $this->requested_amount;
         }
 
-        if ($this->triggerType && !is_null($this->triggerType->default_payout_amount)) {
+        if ($this->triggerType && ! is_null($this->triggerType->default_payout_amount)) {
             return (float) $this->triggerType->default_payout_amount;
         }
 
