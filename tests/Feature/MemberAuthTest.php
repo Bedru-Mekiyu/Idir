@@ -18,7 +18,9 @@ class MemberAuthTest extends TestCase
     use RefreshDatabase;
 
     protected Idir $idir;
+
     protected User $user;
+
     protected Member $member;
 
     protected function setUp(): void
@@ -86,20 +88,29 @@ class MemberAuthTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_public_quick_status_lookup_by_phone(): void
+    public function test_public_quick_status_lookup_is_disabled_and_redirects_to_login(): void
     {
+        // GET /lookup redirects to member login
+        $response = $this->get('/lookup');
+        $response->assertRedirect('/member/login');
+
+        // GET /member/lookup redirects to member login
+        $response = $this->get('/member/lookup');
+        $response->assertRedirect('/member/login');
+
+        // POST /member/lookup with phone redirects to login without revealing member details
         $response = $this->post('/member/lookup', [
             'phone' => '0911556677',
         ]);
 
-        $response->assertStatus(200);
-        $response->assertSee('ሙሉጌታ ኃይለ ማርያም');
-        $response->assertSee('ሰላም የሰፈር እድር');
+        $response->assertRedirect('/member/login');
+        $response->assertDontSee('ሙሉጌታ ኃይለ ማርያም');
+        $response->assertDontSee('ሰላም የሰፈር እድር');
     }
 
     public function test_ethiopian_phone_validation_rule(): void
     {
-        $rule = new EthiopianPhone();
+        $rule = new EthiopianPhone;
 
         // Valid phone numbers
         $validPhones = ['0911223344', '0711223344', '+251911223344', '251911223344'];

@@ -20,8 +20,11 @@ class MemberPortalTest extends TestCase
     use RefreshDatabase;
 
     protected Idir $idir;
+
     protected User $user;
+
     protected Member $member;
+
     protected PayoutTriggerType $trigger;
 
     protected function setUp(): void
@@ -73,7 +76,7 @@ class MemberPortalTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('ሙሉጌታ ኃይለ ማርያም');
-        $response->assertSee('ለክፍያ ብቁ (Vested)');
+        $response->assertSee('ለክፍያ ብቁ');
     }
 
     public function test_member_can_file_claim_with_document_upload(): void
@@ -99,5 +102,27 @@ class MemberPortalTest extends TestCase
             'status' => ClaimStatus::Pending->value,
             'requested_amount' => 8000.00,
         ]);
+    }
+
+    public function test_member_cannot_file_claim_with_trigger_from_another_idir(): void
+    {
+        $otherIdir = Idir::create(['name' => 'ሌላ እድር', 'locale' => 'am']);
+
+        $foreignTrigger = PayoutTriggerType::create([
+            'idir_id' => $otherIdir->id,
+            'name' => 'death',
+            'label_am' => 'ሞት',
+            'default_payout_amount' => 9999.00,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->user)->post('/member/claims', [
+            'payout_trigger_type_id' => $foreignTrigger->id,
+            'requested_amount' => 8000.00,
+            'description' => 'የውጭ እድር ትሪገር ለመጠቀም የተደረገ ሙከራ',
+        ]);
+
+        $response->assertSessionHasErrors('payout_trigger_type_id');
+        $this->assertDatabaseCount('claims', 0);
     }
 }
