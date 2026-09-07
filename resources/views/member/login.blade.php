@@ -1,73 +1,90 @@
-@extends('layouts.member')
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ይግቡ - እድር</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans Ethiopic"', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="leading-loose overflow-x-hidden bg-gray-50 text-gray-900 antialiased font-sans min-h-screen flex items-center justify-center p-4">
 
-@section('title', 'መግቢያ - የአባላት ፖርታል')
-
-@section('content')
-<div class="max-w-md mx-auto my-6 sm:my-12">
-    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <div class="w-14 h-14 bg-brand-50 border border-brand-100 text-brand-700 rounded-2xl flex items-center justify-center font-black text-2xl mx-auto shadow-inner mb-4">
-                እ
-            </div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">የአባላት መግቢያ</h1>
-            <p class="text-xs text-slate-500 mt-1">የስልክ ቁጥርዎን እና የይለፍ ቃልዎን በማስገባት ይግቡ</p>
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="flex justify-center mb-8">
+            <a href="/" class="flex items-center gap-2">
+                <x-logo class="h-10" />
+            </a>
         </div>
 
-        <!-- Login Form -->
-        <form method="POST" action="{{ route('member.login.submit') }}" class="space-y-5">
-            @csrf
+        <!-- Login Card -->
+        <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-4 sm:p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">እንኳን በደህና መጡ</h1>
+                <p class="text-gray-500 text-sm">ወደ አካውንትዎ ለመግባት ስልክ ቁጥርዎን ያስገቡ</p>
+            </div>
 
-            <!-- Login Input (Phone or Email) -->
-            <div>
-                <label for="login" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    ስልክ ቁጥር ወይም ኢሜይል <span class="text-red-500">*</span>
-                </label>
-                <div class="relative">
-                    <input type="text" id="login" name="login" value="{{ old('login') }}" required autofocus
-                        placeholder="0911223344 ወይም user@example.com"
-                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition outline-none">
+            @if($errors->any())
+                <div class="mb-6 bg-gray-50 border border-gray-300 text-black rounded-xl p-4 text-sm font-medium">
+                    {{ $errors->first() }}
                 </div>
-            </div>
-
-            <!-- Password -->
-            <div>
-                <div class="flex items-center justify-between mb-1.5">
-                    <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        የይለፍ ቃል <span class="text-red-500">*</span>
-                    </label>
+            @endif
+            @if(session('status'))
+                <div class="mb-6 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl p-4 text-sm font-medium">
+                    {{ session('status') }}
                 </div>
-                <input type="password" id="password" name="password" required
-                    placeholder="••••••••"
-                    class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition outline-none">
+            @endif
+
+            <form method="POST" action="{{ route('member.login.submit') }}" class="space-y-6">
+                @csrf
+                <div>
+                    <label for="phone" class="block text-sm font-bold text-gray-700 mb-2">ስልክ ቁጥር</label>
+                    <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" required autofocus
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-gray-900 placeholder-gray-400"
+                        placeholder="0911...">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-bold text-gray-700 mb-2">የይለፍ ቃል (Password)</label>
+                    <input type="password" name="password" id="password" required
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-gray-900 placeholder-gray-400"
+                        placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition shadow-sm shadow-blue-600/20">
+                    ይግቡ
+                </button>
+            </form>
+            
+            <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+                <p class="text-sm text-gray-500">
+                    አካውንት የሎትም? 
+                    <a href="{{ route('register') }}" class="font-bold text-blue-600 hover:text-blue-700">አዲስ እድር ይመዝገቡ</a>
+                </p>
             </div>
-
-            <!-- Remember Me -->
-            <div class="flex items-center justify-between text-xs text-slate-600">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                    <input type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
-                    <span>አስታውሰኝ (Remember me)</span>
-                </label>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white font-bold text-sm rounded-xl shadow-lg shadow-brand-700/20 transition transform active:scale-[0.99] flex items-center justify-center gap-2">
-                <span>ግባ (Sign In)</span>
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </button>
-        </form>
-
-        <!-- Quick Status Lookup Callout -->
-        <div class="mt-8 pt-6 border-t border-slate-100 text-center">
-            <p class="text-xs text-slate-500">
-                የይለፍ ቃል የለዎትም? 
-                <a href="{{ route('member.lookup') }}" class="text-brand-700 font-bold hover:underline">
-                    በስልክ ቁጥር ብቻ ሁኔታዎን ይፈልጉ &rarr;
-                </a>
-            </p>
+        </div>
+        
+        <div class="text-center mt-8 text-xs text-gray-400 font-medium">
+            &copy; {{ date('Y') }} እድር አስተዳደር
         </div>
     </div>
-</div>
-@endsection
+
+</body>
+</html>
