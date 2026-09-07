@@ -22,7 +22,7 @@ class SelfServiceSignupJourneyTest extends TestCase
         $response = $this->get('/');
         $response->assertStatus(200);
         $response->assertSee('እድር');
-        $response->assertSee('አዲስ እድር ይጀምሩ');
+        $response->assertSee('ይመዝገቡ');
     }
 
     public function test_public_user_can_signup_and_receives_otp(): void
@@ -58,13 +58,14 @@ class SelfServiceSignupJourneyTest extends TestCase
         $response->assertRedirect('/verify-phone');
     }
 
-    public function test_user_can_verify_phone_with_otp_and_access_wizard(): void
+    public function test_user_can_verify_phone_with_otp_and_redirects_to_access_request(): void
     {
         $user = User::create([
             'name' => 'አብዱራህማን ሁሴን',
             'phone' => '0988776655',
             'password' => bcrypt('password'),
             'phone_verified_at' => null,
+            'can_create_idir' => false,
         ]);
 
         $this->actingAs($user);
@@ -77,18 +78,21 @@ class SelfServiceSignupJourneyTest extends TestCase
             'code' => '123456',
         ]);
 
-        $response->assertRedirect('/committee/new');
+        // In new flow, phone-verified user is redirected to /access-request, NOT /committee/new
+        $response->assertRedirect('/access-request');
         $this->assertTrue($user->fresh()->isPhoneVerified());
+        $this->assertFalse($user->fresh()->can_create_idir);
     }
 
     public function test_verified_user_creates_idir_becomes_chair_and_invites_treasurer(): void
     {
-        // 1. New verified stranger
+        // 1. New verified and authorized founder
         $founder = User::create([
             'name' => 'ዮናስ ታደሰ በቀለ',
             'phone' => '0977112233',
             'password' => bcrypt('password'),
             'phone_verified_at' => now(),
+            'can_create_idir' => true,
         ]);
 
         $this->actingAs($founder);

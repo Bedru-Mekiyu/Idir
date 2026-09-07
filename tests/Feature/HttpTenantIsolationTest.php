@@ -82,7 +82,7 @@ class HttpTenantIsolationTest extends TestCase
 
         $token = $userA->createToken('test')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/member/profile');
 
         $response->assertStatus(200);

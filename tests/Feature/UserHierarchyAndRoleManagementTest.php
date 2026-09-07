@@ -18,15 +18,25 @@ class UserHierarchyAndRoleManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $platformOwner;
+
     protected Idir $idirA;
+
     protected Idir $idirB;
+
     protected User $chairUserA;
+
     protected Member $chairMemberA;
+
     protected User $secretaryUserA;
+
     protected Member $secretaryMemberA;
+
     protected User $regularUserA;
+
     protected Member $regularMemberA;
+
     protected User $chairUserB;
+
     protected Member $chairMemberB;
 
     protected function setUp(): void

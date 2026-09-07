@@ -26,10 +26,15 @@ class PolicyAndWebhookSecurityTest extends TestCase
     use RefreshDatabase;
 
     protected Idir $idir;
+
     protected User $chairUser;
+
     protected Member $chairMember;
+
     protected User $regularUser;
+
     protected Member $regularMember;
+
     protected PayoutTriggerType $trigger;
 
     protected function setUp(): void
@@ -89,10 +94,10 @@ class PolicyAndWebhookSecurityTest extends TestCase
 
     public function test_policies_restrict_sensitive_actions_to_committee(): void
     {
-        $memberPolicy = new MemberPolicy();
-        $contributionPolicy = new ContributionPolicy();
-        $claimPolicy = new ClaimPolicy();
-        $settingPolicy = new IdirSettingPolicy();
+        $memberPolicy = new MemberPolicy;
+        $contributionPolicy = new ContributionPolicy;
+        $claimPolicy = new ClaimPolicy;
+        $settingPolicy = new IdirSettingPolicy;
 
         $claim = Claim::create([
             'idir_id' => $this->idir->id,

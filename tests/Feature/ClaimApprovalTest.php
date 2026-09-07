@@ -23,9 +23,13 @@ class ClaimApprovalTest extends TestCase
     use RefreshDatabase;
 
     protected Idir $idir;
+
     protected Member $claimant;
+
     protected Member $chair;
+
     protected Member $treasurer;
+
     protected PayoutTriggerType $deathTrigger;
 
     protected function setUp(): void

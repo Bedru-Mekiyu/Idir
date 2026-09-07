@@ -20,7 +20,9 @@ class LedgerTest extends TestCase
     use RefreshDatabase;
 
     protected Idir $idir;
+
     protected Member $member;
+
     protected LedgerService $ledger;
 
     protected function setUp(): void

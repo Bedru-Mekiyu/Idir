@@ -9,7 +9,7 @@ use App\Enums\NotificationChannel;
 use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
 use App\Enums\PaymentMethod;
-use App\Jobs\ProcessChapaWebhookJob;
+use App\Jobs\ProcessPaymentWebhookJob;
 use App\Jobs\SendNotificationJob;
 use App\Models\Contribution;
 use App\Models\Idir;
@@ -18,10 +18,11 @@ use App\Models\Member;
 use App\Models\NotificationEvent;
 use App\Models\NotificationPreference;
 use App\Services\AfroMessageService;
-use App\Services\ChapaService;
+use App\Services\Payments\PaymentGatewayManager;
 use App\Services\LedgerService;
 use App\Services\TelegramService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class QueuedJobsTest extends TestCase
@@ -29,6 +30,7 @@ class QueuedJobsTest extends TestCase
     use RefreshDatabase;
 
     protected Idir $idir;
+
     protected Member $member;
 
     protected function setUp(): void
@@ -58,7 +60,7 @@ class QueuedJobsTest extends TestCase
         ]);
     }
 
-    public function test_process_chapa_webhook_job_updates_ledger(): void
+    public function test_process_payment_webhook_job_updates_ledger(): void
     {
         $contribution = Contribution::create([
             'idir_id' => $this->idir->id,
@@ -70,8 +72,20 @@ class QueuedJobsTest extends TestCase
             'chapa_status' => ChapaStatus::Pending,
         ]);
 
-        $job = new ProcessChapaWebhookJob('TEST-TX-REF-12345');
-        $job->handle(app(ChapaService::class), app(LedgerService::class));
+        $job = Http::fake([
+            'api.chapa.co/v1/transaction/verify/*' => Http::response([
+                'status' => 'success',
+                'data' => [
+                    'status' => 'success',
+                    'tx_ref' => 'TEST-TX-REF-12345',
+                    'currency' => 'ETB',
+                    'amount' => 100,
+                ]
+            ], 200),
+        ]);
+        
+        $job = new ProcessPaymentWebhookJob('chapa', 'TEST-TX-REF-12345');
+        $job->handle(app(PaymentGatewayManager::class), app(LedgerService::class));
 
         // Contribution is verified and fund balance updated
         $this->assertEquals(ChapaStatus::Verified, $contribution->fresh()->chapa_status);
@@ -113,3 +127,4 @@ class QueuedJobsTest extends TestCase
         $this->assertStringContainsString('2026-08', $event->message_content);
     }
 }
+

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CommitteeRole;
+use App\Enums\MemberStatus;
 use App\Models\Idir;
 use App\Models\IdirSetting;
 use App\Models\Member;
@@ -14,8 +16,11 @@ class PlatformOwnerTest extends TestCase
     use RefreshDatabase;
 
     protected User $owner;
+
     protected User $chairUser;
+
     protected Idir $idir;
+
     protected Member $chairMember;
 
     protected function setUp(): void
@@ -62,8 +67,8 @@ class PlatformOwnerTest extends TestCase
             'full_name' => $this->chairUser->name,
             'phone' => $this->chairUser->phone,
             'join_date' => '2024-01-01',
-            'status' => \App\Enums\MemberStatus::Active,
-            'committee_role' => \App\Enums\CommitteeRole::Chair,
+            'status' => MemberStatus::Active,
+            'committee_role' => CommitteeRole::Chair,
         ]);
     }
 
