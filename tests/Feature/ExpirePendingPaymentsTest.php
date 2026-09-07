@@ -15,6 +15,7 @@ use App\Models\Member;
 use App\Models\NotificationPreference;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ExpirePendingPaymentsTest extends TestCase
@@ -22,6 +23,7 @@ class ExpirePendingPaymentsTest extends TestCase
     use RefreshDatabase;
 
     protected Idir $idir;
+
     protected Member $member;
 
     protected function setUp(): void
@@ -64,7 +66,7 @@ class ExpirePendingPaymentsTest extends TestCase
             'chapa_tx_ref' => 'OLD-REF-12345',
             'chapa_status' => ChapaStatus::Pending,
         ]);
-        \Illuminate\Support\Facades\DB::table('contributions')
+        DB::table('contributions')
             ->where('id', $oldPending->id)
             ->update(['created_at' => now()->subHours(30)]);
 
