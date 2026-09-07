@@ -84,7 +84,7 @@ This project exists to digitize and scale the Ethiopian social safety net. By pr
 
 ### 1. Landing & Authentication
 ![Landing Page](docs/screenshots/selfservice_01_landing_page.png)
-*Warm Cream & Indigo aesthetic with mathematically precise SVG topography.*
+*Strict 3-Color Minimalist (Black, Blue, White) aesthetic with mathematically precise SVG topography.*
 
 ### 2. Member Portal
 ![Member Dashboard](docs/screenshots/07_member_dashboard.png)
