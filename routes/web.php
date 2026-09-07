@@ -1,14 +1,16 @@
 <?php
 
-use App\Http\Controllers\Auth\PublicAuthController;
+use App\Enums\ChapaStatus;
+use App\Http\Controllers\AccessRequestController;
 use App\Http\Controllers\Auth\FaydaOidcController;
 use App\Http\Controllers\Auth\MemberAuthController;
+use App\Http\Controllers\Auth\PublicAuthController;
 use App\Http\Controllers\MemberPortalController;
-use App\Jobs\ProcessChapaWebhookJob;
 use App\Models\Contribution;
 use App\Services\LedgerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\MemberProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
@@ -20,16 +22,22 @@ Route::get('/', function () {
 Route::middleware(['web'])->group(function () {
     Route::get('/register', [PublicAuthController::class, 'showSignupForm'])->name('register');
     Route::post('/register', [PublicAuthController::class, 'register'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:register')
         ->name('register.submit');
 
     Route::get('/verify-phone', [PublicAuthController::class, 'showVerifyPhoneForm'])->name('phone.verify');
     Route::post('/verify-phone', [PublicAuthController::class, 'verifyPhone'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:phone-verify')
         ->name('phone.verify.submit');
     Route::post('/verify-phone/resend', [PublicAuthController::class, 'resendOtp'])
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:otp-resend')
         ->name('phone.verify.resend');
+
+    // Manager Access Request Routes
+    Route::get('/access-request', [AccessRequestController::class, 'show'])->name('access-request');
+    Route::post('/access-request', [AccessRequestController::class, 'store'])
+        ->middleware('throttle:access-request')
+        ->name('access-request.store');
 });
 
 // Member Public Authentication & Lookup Routes (Rate-Limited)
@@ -37,17 +45,14 @@ Route::middleware(['web'])->group(function () {
     Route::get('/login', fn () => redirect()->route('member.login'))->name('login');
     Route::get('/member/login', [MemberAuthController::class, 'showLoginForm'])->name('member.login');
     Route::post('/member/login', [MemberAuthController::class, 'login'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:member-login')
         ->name('member.login.submit');
     Route::post('/member/logout', [MemberAuthController::class, 'logout'])->name('member.logout');
 
-    Route::get('/member/lookup', [MemberAuthController::class, 'showLookupForm'])->name('member.lookup');
-    Route::post('/member/lookup', [MemberAuthController::class, 'lookup'])
-        ->middleware('throttle:20,1')
-        ->name('member.lookup.submit');
-
-    // Printable Receipt View
-    Route::get('/member/receipt/{contribution}', [MemberPortalController::class, 'showReceipt'])->name('member.receipt');
+    // Deprecated public lookup: strictly redirected to member.login to protect member privacy
+    Route::get('/lookup', fn () => redirect()->route('member.login'));
+    Route::get('/member/lookup', fn () => redirect()->route('member.login'))->name('member.lookup');
+    Route::post('/member/lookup', fn () => redirect()->route('member.login'));
 });
 
 // Fayda OIDC Authentication Routes
@@ -59,8 +64,13 @@ Route::middleware(['web', 'auth'])->group(function () {
 // Member Portal Protected Routes
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/member', [MemberPortalController::class, 'dashboard'])->name('member.dashboard');
+    Route::get('/member/profile', [MemberProfileController::class, 'show'])->name('member.profile');
+    Route::post('/member/profile', [MemberProfileController::class, 'update'])->name('member.profile.update');
     Route::get('/member/claims/create', [MemberPortalController::class, 'showClaimForm'])->name('member.claims.create');
     Route::post('/member/claims', [MemberPortalController::class, 'submitClaim'])->name('member.claims.store');
+
+    // Printable Official Receipt (authenticated; ownership/committee checked in controller)
+    Route::get('/member/receipt/{contribution}', [MemberPortalController::class, 'showReceipt'])->name('member.receipt');
 
     Route::get('/payment/success', function () {
         return view('layouts.member', [
@@ -75,37 +85,34 @@ Route::post('/api/chapa/webhook', function (Request $request) {
     $signature = $request->header('x-chapa-signature') ?? $request->header('chapa-signature');
 
     // Webhook signature verification
-    if (!empty($secret) && !empty($signature)) {
+    if (! empty($secret)) {
+        if (empty($signature)) {
+            Log::warning('Chapa Webhook: Missing signature rejected', ['ip' => $request->ip()]);
+
+            return response()->json(['error' => 'Missing webhook signature'], 401);
+        }
+
         $computed = hash_hmac('sha256', $request->getContent(), $secret);
-        if (!hash_equals($computed, $signature)) {
+        if (! hash_equals($computed, $signature)) {
             Log::warning('Chapa Webhook: Invalid signature rejected', [
                 'ip' => $request->ip(),
                 'signature' => $signature,
             ]);
+
             return response()->json(['error' => 'Invalid webhook signature'], 401);
         }
     }
 
     $txRef = $request->input('tx_ref') ?? $request->input('trx_ref');
 
-    if (!$txRef) {
+    if (! $txRef) {
         return response()->json(['error' => 'Missing tx_ref'], 400);
     }
 
     Log::info('Chapa Webhook: Received verified callback', ['tx_ref' => $txRef]);
 
     // Dispatch background job for server-side verification with retries and exponential backoff
-    ProcessChapaWebhookJob::dispatch($txRef, $request->all());
+    \App\Jobs\ProcessPaymentWebhookJob::dispatch('chapa', $txRef, $request->all());
 
     return response()->json(['status' => 'acknowledged'], 200);
 })->middleware('throttle:60,1')->name('chapa.webhook');
-
-// Mock Chapa Checkout for local development/testing
-Route::get('/mock/chapa/checkout/{txRef}', function (string $txRef, LedgerService $ledger) {
-    $contribution = Contribution::where('chapa_tx_ref', $txRef)->firstOrFail();
-    $contribution->update(['chapa_status' => \App\Enums\ChapaStatus::Verified]);
-    $ledger->recalculateFundBalance($contribution->idir_id);
-    $ledger->updateMemberArrearsStatus($contribution->member_id);
-
-    return redirect()->route('member.dashboard')->with('success', 'ክፍያ በቻፓ በተሳካ ሁኔታ ተጠናቋል!');
-});

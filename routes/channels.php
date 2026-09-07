@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('idir.{idirId}', function (User $user, int $idirId) {
     $idir = Idir::find($idirId);
-    if (!$idir) {
+    if (! $idir) {
         return false;
     }
 
