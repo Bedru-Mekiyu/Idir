@@ -30,7 +30,7 @@
         <!-- Logo -->
         <div class="flex justify-center mb-8">
             <a href="/" class="flex items-center gap-2">
-                <x-logo class="h-10" />
+                <x-logo class="h-10 mx-auto" />
             </a>
         </div>
 

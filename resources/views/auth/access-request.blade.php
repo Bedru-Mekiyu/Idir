@@ -36,7 +36,7 @@
 
             <!-- Brand Header & Status Strip -->
             <div class="text-center mb-6">
-                <a href="/"><x-logo class="h-10" /></a>
+                <a href="/"><x-logo class="h-10 mx-auto" /></a>
                 
                 <!-- Step Indicator -->
                 <div class="flex items-center justify-center gap-2 mt-4">

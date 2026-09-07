@@ -35,7 +35,7 @@
         <div class="max-w-md w-full my-6">
             <!-- Brand Logo & Header -->
             <div class="text-center mb-8">
-                <a href="/"><x-logo class="h-10" /></a>
+                <a href="/"><x-logo class="h-10 mx-auto" /></a>
 
 
 
