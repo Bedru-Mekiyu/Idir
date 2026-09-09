@@ -19,24 +19,38 @@ class TelegramService
      */
     public function sendMessage(string $chatId, string $message): array
     {
+        // Honest behaviour: with no bot token we do NOT fabricate a success
+        // response with a fake message_id. The caller records a FAILED event.
         if (empty($this->botToken)) {
-            Log::info("Telegram Message (Mock): chatId={$chatId}, msg={$message}");
+            Log::warning("Telegram not configured (missing TELEGRAM_BOT_TOKEN): message to chat {$chatId} was NOT sent.");
 
             return [
-                'ok' => true,
-                'result' => [
-                    'message_id' => 9999,
-                    'text' => $message,
-                ],
+                'ok' => false,
+                'configured' => false,
+                'description' => 'Telegram bot token is not configured (missing TELEGRAM_BOT_TOKEN); no message was sent.',
             ];
         }
 
-        $response = Http::post("https://api.telegram.org/bot{$this->botToken}/sendMessage", [
-            'chat_id' => $chatId,
-            'text' => $message,
-            'parse_mode' => 'HTML',
-        ]);
+        try {
+            $response = Http::acceptJson()
+                ->timeout(15)
+                ->post("https://api.telegram.org/bot{$this->botToken}/sendMessage", [
+                    'chat_id' => $chatId,
+                    'text' => $message,
+                    'parse_mode' => 'HTML',
+                ]);
+        } catch (\Throwable $e) {
+            Log::error("Telegram sendMessage threw: {$e->getMessage()}");
 
-        return $response->json();
+            return [
+                'ok' => false,
+                'configured' => true,
+                'description' => $e->getMessage(),
+            ];
+        }
+
+        $json = $response->json();
+
+        return is_array($json) ? $json : ['ok' => false, 'description' => $response->body()];
     }
 }

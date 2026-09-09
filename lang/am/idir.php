@@ -23,6 +23,8 @@ return [
     'required_approvals' => 'ያስፈልጋሉ ፈቃዶች',
     'payout_triggers' => 'የክፍያ ምክንያቶች',
     'fund_balance' => 'የገንዘብ ቀሪ',
+    'chapa_subaccount_id' => 'የቻፓ ንዑስ መለያ መለያ (Chapa Subaccount ID)',
+    'chapa_subaccount_id_help' => 'አማራጭ ነው። የዚህ እድር ክፍያዎች የሚከፈሉበት የቻፓ ንዑስ መለያ።',
     'frequency' => [
         'weekly' => 'በሳምንት',
         'monthly' => 'በወር',

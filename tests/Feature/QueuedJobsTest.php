@@ -18,8 +18,8 @@ use App\Models\Member;
 use App\Models\NotificationEvent;
 use App\Models\NotificationPreference;
 use App\Services\AfroMessageService;
-use App\Services\Payments\PaymentGatewayManager;
 use App\Services\LedgerService;
+use App\Services\Payments\PaymentGatewayManager;
 use App\Services\TelegramService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -80,10 +80,10 @@ class QueuedJobsTest extends TestCase
                     'tx_ref' => 'TEST-TX-REF-12345',
                     'currency' => 'ETB',
                     'amount' => 100,
-                ]
+                ],
             ], 200),
         ]);
-        
+
         $job = new ProcessPaymentWebhookJob('chapa', 'TEST-TX-REF-12345');
         $job->handle(app(PaymentGatewayManager::class), app(LedgerService::class));
 
@@ -94,6 +94,14 @@ class QueuedJobsTest extends TestCase
 
     public function test_send_notification_job_renders_template_and_logs_event(): void
     {
+        // Exercise the REAL HTTP code path (no mock short-circuit): a configured
+        // token forces an actual AfroMessage request, faked here for determinism.
+        config(['services.afromessage.token' => 'test-token-xyz']);
+
+        Http::fake([
+            'api.afromessage.com/*' => Http::response(['acknowledge' => 'success', 'response' => ['status' => 'ok']], 200),
+        ]);
+
         NotificationPreference::create([
             'idir_id' => $this->idir->id,
             'event_type' => NotificationType::PaymentConfirmation,
@@ -121,10 +129,38 @@ class QueuedJobsTest extends TestCase
             'status' => NotificationStatus::Sent->value,
         ]);
 
+        // A real HTTP request was actually issued to AfroMessage's endpoint.
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'afromessage.com/api/send'));
+
         $event = NotificationEvent::latest()->first();
         $this->assertStringContainsString('አበበ ተሰማ', $event->message_content);
         $this->assertStringContainsString('200.00', $event->message_content);
         $this->assertStringContainsString('2026-08', $event->message_content);
     }
-}
 
+    public function test_send_notification_job_records_failure_when_sms_gateway_not_configured(): void
+    {
+        // No token configured: the service must NOT fabricate success. The event
+        // must be recorded as FAILED with the real reason, never a false "sent".
+        config(['services.afromessage.token' => null]);
+
+        $job = new SendNotificationJob(
+            $this->idir->id,
+            $this->member->id,
+            NotificationType::PaymentConfirmation,
+            ['amount' => 200.00, 'period' => '2026-08']
+        );
+
+        $job->handle(app(AfroMessageService::class), app(TelegramService::class));
+
+        $this->assertDatabaseHas('notification_events', [
+            'member_id' => $this->member->id,
+            'channel' => NotificationChannel::Sms->value,
+            'status' => NotificationStatus::Failed->value,
+        ]);
+
+        $event = NotificationEvent::where('status', NotificationStatus::Failed->value)->latest()->first();
+        $this->assertNotNull($event->error_detail);
+        $this->assertStringContainsString('not configured', $event->error_detail);
+    }
+}

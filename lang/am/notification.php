@@ -14,6 +14,8 @@ return [
         'exclusion_warning' => 'የማስወገድ ማስጠንቀቂያ',
         'general_announcement' => 'አጠቃላይ ማስታወቂያ',
         'new_member_welcome' => 'አዲስ አባል እንኳን ደህና መጡ',
+        'idir_approved' => 'እድር ጸድቋል',
+        'idir_rejected' => 'እድር ተቀባይነት አላገኘም',
     ],
     'channel' => [
         'sms' => 'ኤስኤምኤስ',
@@ -31,4 +33,7 @@ return [
     'in_app_enabled' => 'በመተግበሪያ ውስጥ ማሳወቂያ',
     'template_am' => 'የአማርኛ መልዕክት ቅጽ',
     'template_en' => 'የእንግሊዝኛ መልዕክት ቅጽ',
+    'send_announcement' => 'ማስታወቂያ ላክ',
+    'announcement_message' => 'የማስታወቂያ መልእክት',
+    'announcement_sent' => 'ማስታወቂያ ለ:count አባላት ተልኳል',
 ];

@@ -15,6 +15,7 @@ return [
         'base_url' => env('AFROMESSAGE_BASE_URL', 'https://api.afromessage.com/api'),
         'token' => env('AFROMESSAGE_TOKEN'),
         'sender_id' => env('AFROMESSAGE_SENDER_ID'),
+        'identifier_id' => env('AFROMESSAGE_IDENTIFIER_ID'),
     ],
 
     'telegram' => [

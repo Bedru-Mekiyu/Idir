@@ -45,8 +45,8 @@ class SendNotificationJob implements ShouldQueue
             ->where('event_type', $this->type->value)
             ->first();
 
-        // Default templates if no custom preference exists
-        $template = $pref?->template_am ?? 'ውድ :member_name፣ ከ :idir_name ማሳወቂያ ተልኳል።';
+        // Use the tenant's custom template when set, otherwise a per-type default.
+        $template = $pref?->template_am ?: $this->defaultTemplate();
 
         // Merge default placeholders
         $vars = array_merge([
@@ -60,6 +60,8 @@ class SendNotificationJob implements ShouldQueue
         ], $this->placeholders);
 
         $messageContent = str_replace(array_keys($vars), array_values($vars), $template);
+
+        $failures = [];
 
         // 1. Send SMS if enabled
         if (($pref?->sms_enabled ?? true) && $member?->phone) {
@@ -76,10 +78,16 @@ class SendNotificationJob implements ShouldQueue
                 'error_detail' => $isSuccess ? null : json_encode($smsResult),
                 'sent_at' => now(),
             ]);
+
+            // A gateway/transport failure with valid credentials is retryable;
+            // a permanent misconfiguration ("configured" === false) is not.
+            if (! $isSuccess && ($smsResult['configured'] ?? true) !== false) {
+                $failures[] = 'sms: '.json_encode($smsResult);
+            }
         }
 
         // 2. Send Telegram if enabled
-        if (($pref?->telegram_enabled ?? false) && $member?->telegram_chat_id) {
+        if (($pref?->telegram_enabled ?? true) && $member?->telegram_chat_id) {
             $tgResult = $telegram->sendMessage($member->telegram_chat_id, $messageContent);
             $isSuccess = ($tgResult['ok'] ?? false) === true;
 
@@ -93,6 +101,39 @@ class SendNotificationJob implements ShouldQueue
                 'error_detail' => $isSuccess ? null : json_encode($tgResult),
                 'sent_at' => now(),
             ]);
+
+            if (! $isSuccess && ($tgResult['configured'] ?? true) !== false) {
+                $failures[] = 'telegram: '.json_encode($tgResult);
+            }
         }
+
+        // Throw so the queue retries per $tries/$backoff and, once exhausted,
+        // records the job in failed_jobs (visible in Horizon). A permanent
+        // misconfiguration is recorded as a failed event above but not retried.
+        if ($failures !== []) {
+            throw new \RuntimeException('Notification delivery failed and will be retried: '.implode(' | ', $failures));
+        }
+    }
+
+    /**
+     * Sensible default Amharic message templates per notification type, used
+     * when the tenant has not configured a custom template for the event.
+     */
+    protected function defaultTemplate(): string
+    {
+        return match ($this->type) {
+            NotificationType::DueReminder => 'ውድ :member_name፣ ለ:period ወር የ:idir_name መዋጮ :amount ብር ክፍያ ጊዜው ደርሷል። እባክዎ በጊዜው ይክፈሉ።',
+            NotificationType::LateWarning => 'ውድ :member_name፣ ለ:period ወር የ:idir_name መዋጮ :amount ብር እስካሁን አልተከፈለም። እባክዎ በአስቸኳይ ይክፈሉ።',
+            NotificationType::PaymentConfirmation => 'ውድ :member_name፣ ለ:period ወር የከፈሉት :amount ብር ተረጋግጧል። እናመሰግናለን። (:idir_name)',
+            NotificationType::ClaimFiled => 'ውድ :member_name፣ በ:idir_name አዲስ የክፍያ ጥያቄ ቀርቧል። እባክዎ ገምግመው ውሳኔ ይስጡ።',
+            NotificationType::ClaimApproved => 'ውድ :member_name፣ ያቀረቡት የክፍያ ጥያቄ በ:idir_name ጸድቋል። የተፈቀደ መጠን፦ :amount ብር።',
+            NotificationType::ClaimRejected => 'ውድ :member_name፣ ያቀረቡት የክፍያ ጥያቄ በ:idir_name ተቀባይነት አላገኘም። ምክንያት፦ :reason',
+            NotificationType::DisbursementMade => 'ውድ :member_name፣ ከ:idir_name :amount ብር ክፍያ ተፈጽሞልዎታል።',
+            NotificationType::ExclusionWarning => 'ውድ :member_name፣ ከ:idir_name ያለብዎ የመዋጮ እዳ ስላልተከፈለ ማስጠንቀቂያ ተሰጥቷል። በጊዜው ካልከፈሉ ከአባልነት ሊሰናበቱ ይችላሉ።',
+            NotificationType::GeneralAnnouncement => 'ከ:idir_name ማስታወቂያ፦ :message',
+            NotificationType::NewMemberWelcome => 'እንኳን ወደ :idir_name በደህና መጡ፣ ውድ :member_name! አባልነትዎ በተሳካ ሁኔታ ተመዝግቧል።',
+            NotificationType::IdirApproved => 'እንኳን ደስ አለዎት ውድ :member_name! የ:idir_name እድር ምዝገባ ጸድቋል። አሁን አገልግሎት መጀመር ይችላሉ።',
+            NotificationType::IdirRejected => 'ውድ :member_name፣ የ:idir_name እድር ምዝገባ ጥያቄ ተቀባይነት አላገኘም። ምክንያት፦ :reason',
+        };
     }
 }

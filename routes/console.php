@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 // Scheduled Jobs
 Schedule::command('idir:expire-pending-payments')->hourly();
 Schedule::command('idir:check-arrears')->daily();
+Schedule::command('idir:send-due-reminders')->monthlyOn(1, '08:00');

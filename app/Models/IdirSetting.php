@@ -21,6 +21,7 @@ class IdirSetting extends Model
         'required_approvals',
         'enabled_payout_triggers',
         'fund_balance',
+        'chapa_subaccount_id',
     ];
 
     protected function casts(): array

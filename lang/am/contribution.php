@@ -5,11 +5,14 @@ return [
     'contributions' => 'መዋጮዎች',
     'record_payment' => 'ክፍያ መዝግብ',
     'pay_online' => 'በመስመር ክፈል',
+    'payment_init_failed' => 'ክፍያው ሊጀመር አልቻለም። እባክዎ እንደገና ይሞክሩ።',
     'amount' => 'መጠን',
     'method' => [
         'label' => 'የክፍያ ዘዴ',
         'cash' => 'ጥሬ ገንዘብ',
         'chapa' => 'ቻፓ (ዲጂታል)',
+        'telebirr' => 'ቴሌብር',
+        'cbebirr' => 'ሲቢኢ ብር',
     ],
     'type' => [
         'label' => 'ዓይነት',
@@ -30,4 +33,6 @@ return [
     'record_correction' => 'ማስተካከያ መዝግብ',
     'correction_reason' => 'የማስተካከያ ምክንያት',
     'is_correction' => 'ማስተካከያ',
+    'received_via_subaccount' => 'ክፍያዎች በቻፓ ንዑስ መለያ ይደርሳሉ',
+    'no_subaccount_configured' => 'ክፍያዎች በቀጥታ ለዚህ እድር ይደርሳሉ።',
 ];

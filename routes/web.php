@@ -1,16 +1,15 @@
 <?php
 
-use App\Enums\ChapaStatus;
 use App\Http\Controllers\AccessRequestController;
 use App\Http\Controllers\Auth\FaydaOidcController;
 use App\Http\Controllers\Auth\MemberAuthController;
 use App\Http\Controllers\Auth\PublicAuthController;
 use App\Http\Controllers\MemberPortalController;
+use App\Http\Controllers\MemberProfileController;
+use App\Jobs\ProcessPaymentWebhookJob;
 use App\Models\Contribution;
-use App\Services\LedgerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\MemberProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
@@ -69,6 +68,11 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/member/claims/create', [MemberPortalController::class, 'showClaimForm'])->name('member.claims.create');
     Route::post('/member/claims', [MemberPortalController::class, 'submitClaim'])->name('member.claims.store');
 
+    // Member online contribution payment (Telebirr / CBE Birr direct charge, Chapa hosted fallback)
+    Route::get('/member/pay', [MemberPortalController::class, 'showPayment'])->name('member.pay');
+    Route::post('/member/pay', [MemberPortalController::class, 'payWithMethod'])->name('member.pay.submit');
+    Route::get('/member/payment/{contribution}/pending', [MemberPortalController::class, 'showPaymentPending'])->name('member.payment.pending');
+
     // Printable Official Receipt (authenticated; ownership/committee checked in controller)
     Route::get('/member/receipt/{contribution}', [MemberPortalController::class, 'showReceipt'])->name('member.receipt');
 
@@ -112,7 +116,7 @@ Route::post('/api/chapa/webhook', function (Request $request) {
     Log::info('Chapa Webhook: Received verified callback', ['tx_ref' => $txRef]);
 
     // Dispatch background job for server-side verification with retries and exponential backoff
-    \App\Jobs\ProcessPaymentWebhookJob::dispatch('chapa', $txRef, $request->all());
+    ProcessPaymentWebhookJob::dispatch('chapa', $txRef, $request->all());
 
     return response()->json(['status' => 'acknowledged'], 200);
 })->middleware('throttle:60,1')->name('chapa.webhook');

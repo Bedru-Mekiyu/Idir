@@ -5,11 +5,14 @@ return [
     'contributions' => 'Contributions',
     'record_payment' => 'Record Payment',
     'pay_online' => 'Pay Online',
+    'payment_init_failed' => 'Payment could not be initiated. Please try again.',
     'amount' => 'Amount',
     'method' => [
         'label' => 'Payment Method',
         'cash' => 'Cash',
         'chapa' => 'Chapa (Digital)',
+        'telebirr' => 'Telebirr',
+        'cbebirr' => 'CBE Birr',
     ],
     'type' => [
         'label' => 'Type',
@@ -30,4 +33,6 @@ return [
     'record_correction' => 'Record Correction',
     'correction_reason' => 'Correction Reason',
     'is_correction' => 'Correction',
+    'received_via_subaccount' => 'Payments received via Chapa subaccount',
+    'no_subaccount_configured' => 'Payments are received directly by this idir.',
 ];

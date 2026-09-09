@@ -13,11 +13,14 @@ class AfroMessageService
 
     protected ?string $senderId;
 
+    protected ?string $identifierId;
+
     public function __construct()
     {
         $this->baseUrl = config('services.afromessage.base_url', 'https://api.afromessage.com/api');
         $this->token = config('services.afromessage.token');
         $this->senderId = config('services.afromessage.sender_id');
+        $this->identifierId = config('services.afromessage.identifier_id');
     }
 
     /**
@@ -27,13 +30,17 @@ class AfroMessageService
     {
         $normalizedPhone = $this->normalizePhone($to);
 
+        // Honest behaviour: with no real credentials we do NOT fabricate a
+        // success response. The caller records this as a FAILED NotificationEvent
+        // with a clear reason, rather than a misleading "sent" record.
         if (empty($this->token)) {
-            Log::info("AfroMessage SMS (Mock): to={$normalizedPhone}, msg={$message}");
+            Log::warning("AfroMessage not configured (missing AFROMESSAGE_TOKEN): SMS to {$normalizedPhone} was NOT sent.");
 
             return [
-                'acknowledge' => 'success',
+                'acknowledge' => 'error',
+                'configured' => false,
                 'response' => [
-                    'status' => 'Mock SMS sent successfully',
+                    'errors' => ['AfroMessage credentials are not configured (missing AFROMESSAGE_TOKEN); no SMS was sent.'],
                     'to' => $normalizedPhone,
                 ],
             ];
@@ -48,11 +55,37 @@ class AfroMessageService
             $payload['sender'] = $this->senderId;
         }
 
-        $response = Http::withToken($this->token)
-            ->acceptJson()
-            ->post("{$this->baseUrl}/send", $payload);
+        if ($this->identifierId) {
+            $payload['from'] = $this->identifierId;
+        }
 
-        return $response->json();
+        try {
+            $response = Http::withToken($this->token)
+                ->acceptJson()
+                ->timeout(15)
+                ->post("{$this->baseUrl}/send", $payload);
+        } catch (\Throwable $e) {
+            Log::error("AfroMessage SMS request threw: {$e->getMessage()}");
+
+            return [
+                'acknowledge' => 'error',
+                'configured' => true,
+                'response' => ['errors' => [$e->getMessage()]],
+            ];
+        }
+
+        $json = $response->json();
+
+        if (! is_array($json)) {
+            return [
+                'acknowledge' => 'error',
+                'configured' => true,
+                'http_status' => $response->status(),
+                'response' => ['raw' => $response->body()],
+            ];
+        }
+
+        return $json;
     }
 
     /**

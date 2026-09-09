@@ -45,6 +45,9 @@
                         <a href="{{ route('member.dashboard') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('member.dashboard') ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }} text-sm font-medium">
                             ዋና ገጽ
                         </a>
+                        <a href="{{ route('member.pay') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('member.pay*') || request()->routeIs('member.payment.*') ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }} text-sm font-medium">
+                            ክፍያ
+                        </a>
                         <a href="{{ route('member.claims.create') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('member.claims.*') ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }} text-sm font-medium">
                             ካሳ ጠይቅ
                         </a>

@@ -34,10 +34,14 @@
 <h2 class="text-xl font-bold text-gray-900 mb-1">አጠቃላይ መዋጮ</h2>
             <p class="text-gray-500 text-sm">እስካሁን ያዋጡት ጠቅላላ መጠን</p>
         </div>
-        <div class="text-left md:text-right">
+        <div class="text-left md:text-right flex flex-col items-start md:items-end gap-4">
             <div class="text-3xl sm:text-3xl font-black text-blue-700 tracking-tight bg-blue-50/50 inline-block px-4 py-2 rounded-xl border border-blue-100">
                 ብር {{ number_format($contributions->sum('amount'), 2) }}
             </div>
+            <a href="{{ route('member.pay') }}" class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl px-5 py-2.5 transition shadow-sm text-sm">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                መዋጮ ይክፈሉ
+            </a>
         </div>
     </div>
 

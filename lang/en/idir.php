@@ -23,6 +23,8 @@ return [
     'required_approvals' => 'Required Approvals',
     'payout_triggers' => 'Payout Triggers',
     'fund_balance' => 'Fund Balance',
+    'chapa_subaccount_id' => 'Chapa Subaccount ID',
+    'chapa_subaccount_id_help' => 'Optional. Chapa subaccount this idir\'s payments should be split to.',
     'frequency' => [
         'weekly' => 'Weekly',
         'monthly' => 'Monthly',

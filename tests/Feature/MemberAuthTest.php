@@ -69,6 +69,19 @@ class MemberAuthTest extends TestCase
         $this->assertAuthenticatedAs($this->user);
     }
 
+    public function test_member_can_login_with_phone_form_field(): void
+    {
+        // The member login blade submits the credential in a `phone` field;
+        // the controller must accept it in addition to `login`.
+        $response = $this->post('/member/login', [
+            'phone' => '0911556677',
+            'password' => 'password123',
+        ]);
+
+        $response->assertRedirect('/member');
+        $this->assertAuthenticatedAs($this->user);
+    }
+
     public function test_member_login_fails_with_wrong_password(): void
     {
         $response = $this->post('/member/login', [

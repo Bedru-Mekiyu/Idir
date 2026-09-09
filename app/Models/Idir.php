@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CommitteeRole;
+use App\Enums\MemberStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -67,6 +68,16 @@ class Idir extends Model
     public function members(): HasMany
     {
         return $this->hasMany(Member::class);
+    }
+
+    public function activeMembers(): HasMany
+    {
+        return $this->hasMany(Member::class)->where('status', MemberStatus::Active);
+    }
+
+    public function committeeMembers(): HasMany
+    {
+        return $this->hasMany(Member::class)->whereNotNull('committee_role');
     }
 
     public function users(): BelongsToMany

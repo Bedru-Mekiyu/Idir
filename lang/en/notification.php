@@ -14,6 +14,8 @@ return [
         'exclusion_warning' => 'Exclusion Warning',
         'general_announcement' => 'General Announcement',
         'new_member_welcome' => 'New Member Welcome',
+        'idir_approved' => 'Idir Approved',
+        'idir_rejected' => 'Idir Rejected',
     ],
     'channel' => [
         'sms' => 'SMS',
@@ -31,4 +33,7 @@ return [
     'in_app_enabled' => 'In-App Notification',
     'template_am' => 'Amharic Message Template',
     'template_en' => 'English Message Template',
+    'send_announcement' => 'Send Announcement',
+    'announcement_message' => 'Announcement Message',
+    'announcement_sent' => 'Announcement queued for :count member(s)',
 ];
