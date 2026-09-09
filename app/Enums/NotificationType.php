@@ -14,6 +14,8 @@ enum NotificationType: string
     case ExclusionWarning = 'exclusion_warning';
     case GeneralAnnouncement = 'general_announcement';
     case NewMemberWelcome = 'new_member_welcome';
+    case IdirApproved = 'idir_approved';
+    case IdirRejected = 'idir_rejected';
 
     public function label(): string
     {
