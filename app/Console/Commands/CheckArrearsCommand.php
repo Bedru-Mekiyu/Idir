@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Enums\ChapaStatus;
 use App\Enums\MemberStatus;
+use App\Enums\NotificationType;
+use App\Jobs\SendNotificationJob;
 use App\Models\Contribution;
 use App\Models\Member;
 use Carbon\Carbon;
@@ -47,6 +49,17 @@ class CheckArrearsCommand extends Command
 
                 $member->update(['status' => MemberStatus::InArrears]);
                 $updatedCount++;
+
+                // Send a late/arrears warning to the member.
+                SendNotificationJob::dispatch(
+                    $member->idir_id,
+                    $member->id,
+                    NotificationType::LateWarning,
+                    [
+                        'period' => $currentPeriod,
+                        'amount' => $member->idir->settings->dues_amount ?? 0,
+                    ],
+                );
             }
         }
 
