@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Enums\ApprovalDecision;
 use App\Enums\ClaimStatus;
+use App\Enums\NotificationType;
 use App\Filament\Resources\ClaimResource\Pages;
+use App\Jobs\SendNotificationJob;
 use App\Models\Claim;
 use App\Models\ClaimApproval;
 use App\Models\Member;
@@ -207,6 +209,21 @@ class ClaimResource extends Resource
                                 'notes' => "በኮሚቴ ሙሉ ፈቃድ የተፈጸመ ክፍያ (የመጨረሻ ፈቃድ ሰጪ፦ {$member->full_name})",
                             ]);
 
+                            // Notify the filing member: claim approved + disbursement made.
+                            SendNotificationJob::dispatch(
+                                $record->idir_id,
+                                $record->member_id,
+                                NotificationType::ClaimApproved,
+                                ['amount' => $finalAmount],
+                            );
+
+                            SendNotificationJob::dispatch(
+                                $record->idir_id,
+                                $record->member_id,
+                                NotificationType::DisbursementMade,
+                                ['amount' => $finalAmount],
+                            );
+
                             Notification::make()
                                 ->title('ጥያቄው ፀድቆ ክፍያ ተመዝግቧል!')
                                 ->success()
@@ -258,6 +275,14 @@ class ClaimResource extends Resource
                         ]);
 
                         $record->update(['status' => ClaimStatus::Rejected]);
+
+                        // Notify the filing member that their claim was rejected, with the reason.
+                        SendNotificationJob::dispatch(
+                            $record->idir_id,
+                            $record->member_id,
+                            NotificationType::ClaimRejected,
+                            ['reason' => $data['remarks']],
+                        );
 
                         Notification::make()
                             ->title('ጥያቄው ውድቅ ተደርጓል')

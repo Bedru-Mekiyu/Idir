@@ -29,12 +29,15 @@ class MemberAuthController extends Controller
      */
     public function login(Request $request)
     {
+        // The member login form submits a `phone` field; older/API clients may
+        // send `login`. Accept either so the browser flow (and the API) works.
         $credentials = $request->validate([
-            'login' => 'required|string',
+            'phone' => 'required_without:login|string',
+            'login' => 'required_without:phone|string',
             'password' => 'required|string',
         ]);
 
-        $loginInput = trim($credentials['login']);
+        $loginInput = trim($credentials['login'] ?? $credentials['phone']);
 
         // Find user by phone, email, or normalized phone
         $user = User::where('phone', $loginInput)

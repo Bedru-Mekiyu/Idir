@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Enums\CommitteeRole;
 use App\Enums\MemberStatus;
+use App\Enums\NotificationType;
 use App\Filament\Resources\MemberResource\Pages;
+use App\Jobs\SendNotificationJob;
 use App\Models\Member;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -334,6 +336,14 @@ class MemberResource extends Resource
                     ->requiresConfirmation()
                     ->action(function (Member $record) {
                         $record->update(['exclusion_warning_sent_at' => now()]);
+
+                        // Send the actual warning to the member before any exclusion action.
+                        SendNotificationJob::dispatch(
+                            $record->idir_id,
+                            $record->id,
+                            NotificationType::ExclusionWarning,
+                        );
+
                         Notification::make()
                             ->title(__('member.exclusion_warning_sent'))
                             ->success()

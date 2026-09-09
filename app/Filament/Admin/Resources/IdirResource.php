@@ -2,9 +2,10 @@
 
 namespace App\Filament\Admin\Resources;
 
+use App\Enums\NotificationType;
 use App\Filament\Admin\Resources\IdirResource\Pages;
+use App\Jobs\SendNotificationJob;
 use App\Models\Idir;
-use App\Services\AfroMessageService;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
@@ -152,11 +153,14 @@ class IdirResource extends Resource
                             'rejection_reason' => null,
                         ]);
 
-                        // Send approval SMS to founder
+                        // Notify the founder via the audited queue job (SMS + Telegram + NotificationEvent).
                         $founder = $record->founder();
-                        if ($founder && $founder->phone) {
-                            $sms = "እንኳን ደስ አለዎት! የ{$record->name} እድር ምዝገባ ጥያቄዎ ጸድቋል። አሁን አባላትን መመዝገብና አገልግሎት መጀመር ይችላሉ።";
-                            app(AfroMessageService::class)->sendSms($founder->phone, $sms);
+                        if ($founder) {
+                            SendNotificationJob::dispatch(
+                                $record->id,
+                                $founder->id,
+                                NotificationType::IdirApproved,
+                            );
                         }
 
                         Notification::make()
@@ -188,11 +192,15 @@ class IdirResource extends Resource
                             'rejected_at' => now(),
                         ]);
 
-                        // Send rejection SMS to founder
+                        // Notify the founder via the audited queue job (SMS + Telegram + NotificationEvent).
                         $founder = $record->founder();
-                        if ($founder && $founder->phone) {
-                            $sms = "የ{$record->name} እድር ምዝገባ ጥያቄዎ ውድቅ ተደርጓል። ምክንያት፦ {$data['rejection_reason']}";
-                            app(AfroMessageService::class)->sendSms($founder->phone, $sms);
+                        if ($founder) {
+                            SendNotificationJob::dispatch(
+                                $record->id,
+                                $founder->id,
+                                NotificationType::IdirRejected,
+                                ['reason' => $data['rejection_reason']],
+                            );
                         }
 
                         Notification::make()
