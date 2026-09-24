@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/username/idir/main/public/favicon.svg" alt="Idir Logo" width="120" />
+  <img src="public/favicon.svg" alt="Idir Logo" width="120" />
 
   # Idir Platform (እድር ፕላትፎርም)
   
@@ -147,7 +147,7 @@ Before you begin, ensure you have:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/username/idir.git
+   git clone https://github.com/Bedru-Mekiyu/Idir.git
    cd idir
    ```
 2. Install PHP dependencies:
