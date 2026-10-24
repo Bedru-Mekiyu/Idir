@@ -30,6 +30,12 @@
         <env name="DB_DATABASE" value=":memory:" force="true"/>
         <env name="DB_URL" value="" force="true"/>
         <env name="MAIL_MAILER" value="array" force="true"/>
+        <env name="SMS_DRIVER" value="afromessage" force="true"/>
+        <env name="AFROMESSAGE_TOKEN" value="" force="true"/>
+        <env name="GEEZSMS_TOKEN" value="" force="true"/>
+        <env name="AT_API_KEY" value="" force="true"/>
+        <env name="TELEBIRR_APP_ID" value="" force="true"/>
+        <env name="MPESA_CONSUMER_KEY" value="" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>
         <env name="SESSION_DRIVER" value="array" force="true"/>
         <env name="PULSE_ENABLED" value="false" force="true"/>
