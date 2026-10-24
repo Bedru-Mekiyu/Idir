@@ -186,6 +186,41 @@ class ContributionResource extends Resource
                             ->send();
                     })
                     ->visible(fn (Contribution $record) => ! $record->is_correction && $record->amount > 0),
+            ])
+            ->headerActions([
+                \Filament\Tables\Actions\Action::make('export_csv')
+                    ->label('CSV ላውርድ')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function () {
+                        $idir = Filament::getTenant();
+                        $contributions = Contribution::with('member')
+                            ->where('idir_id', $idir->id)
+                            ->orderByDesc('created_at')
+                            ->get();
+
+                        $filename = 'contributions-'.$idir->id.'-'.now()->format('Y-m-d').'.csv';
+
+                        $headers = [
+                            'Content-Type' => 'text/csv',
+                            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+                        ];
+
+                        $rows = [['አባል ስም', 'ወር', 'መጠን (ብር)', 'የክፍያ ዘዴ', 'ሁኔታ', 'ቀን']];
+                        foreach ($contributions as $c) {
+                            $rows[] = [
+                                $c->member?->full_name ?? '-',
+                                $c->period_covered,
+                                $c->amount,
+                                $c->method?->value ?? '-',
+                                $c->chapa_status?->value ?? 'cash',
+                                $c->created_at->format('Y-m-d'),
+                            ];
+                        }
+
+                        $csv = implode("\n", array_map(fn ($r) => implode(',', array_map(fn ($v) => '"'.str_replace('"', '""', $v).'"', $r)), $rows));
+
+                        return response()->streamDownload(fn () => print ($csv), $filename, $headers);
+                    }),
             ]);
     }
 

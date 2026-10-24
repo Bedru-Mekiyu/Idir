@@ -21,6 +21,7 @@ return [
         'sms' => 'ኤስኤምኤስ',
         'telegram' => 'ቴሌግራም',
         'in_app' => 'በመተግበሪያ ውስጥ',
+        'email' => 'ኢሜይል',
     ],
     'status' => [
         'queued' => 'በመጠበቅ ላይ',
@@ -31,6 +32,7 @@ return [
     'sms_enabled' => 'ኤስኤምኤስ ማሳወቂያ',
     'telegram_enabled' => 'ቴሌግራም ማሳወቂያ',
     'in_app_enabled' => 'በመተግበሪያ ውስጥ ማሳወቂያ',
+    'email_enabled' => 'ኢሜይል ማሳወቂያ',
     'template_am' => 'የአማርኛ መልዕክት ቅጽ',
     'template_en' => 'የእንግሊዝኛ መልዕክት ቅጽ',
     'send_announcement' => 'ማስታወቂያ ላክ',

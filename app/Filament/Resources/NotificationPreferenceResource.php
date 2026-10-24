@@ -56,6 +56,9 @@ class NotificationPreferenceResource extends Resource
                 Toggle::make('in_app_enabled')
                     ->label(__('notification.in_app_enabled'))
                     ->default(true),
+                Toggle::make('email_enabled')
+                    ->label(__('notification.email_enabled'))
+                    ->default(false),
                 Textarea::make('template_am')
                     ->label(__('notification.template_am'))
                     ->helperText('ተለዋዋጭ ቃላት፦ :member_name, :amount, :period, :idir_name, :trigger, :reason')
@@ -84,6 +87,9 @@ class NotificationPreferenceResource extends Resource
                     ->boolean(),
                 IconColumn::make('in_app_enabled')
                     ->label(__('notification.channel.in_app'))
+                    ->boolean(),
+                IconColumn::make('email_enabled')
+                    ->label(__('notification.channel.email'))
                     ->boolean(),
                 TextColumn::make('template_am')
                     ->label(__('notification.template_am'))

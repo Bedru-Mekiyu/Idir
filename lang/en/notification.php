@@ -21,6 +21,7 @@ return [
         'sms' => 'SMS',
         'telegram' => 'Telegram',
         'in_app' => 'In-App',
+        'email' => 'Email',
     ],
     'status' => [
         'queued' => 'Queued',
@@ -31,6 +32,7 @@ return [
     'sms_enabled' => 'SMS Notification',
     'telegram_enabled' => 'Telegram Notification',
     'in_app_enabled' => 'In-App Notification',
+    'email_enabled' => 'Email Notification',
     'template_am' => 'Amharic Message Template',
     'template_en' => 'English Message Template',
     'send_announcement' => 'Send Announcement',

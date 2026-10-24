@@ -6,13 +6,13 @@ use App\Filament\Pages\CommitteeLogin;
 use App\Filament\Pages\Tenancy\EditIdirProfile;
 use App\Filament\Pages\Tenancy\RegisterIdir;
 use App\Models\Idir;
+use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
-use Filament\Enums\ThemeMode;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
@@ -48,7 +48,7 @@ class CommitteePanelProvider extends PanelProvider
             ->favicon(asset('favicon.svg'))
             ->brandLogo(fn () => view('components.logo'))
             ->brandLogoHeight('2rem')
-            
+
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

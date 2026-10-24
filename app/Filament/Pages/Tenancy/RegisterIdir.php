@@ -4,6 +4,8 @@ namespace App\Filament\Pages\Tenancy;
 
 use App\Enums\CommitteeRole;
 use App\Enums\MemberStatus;
+use App\Enums\NotificationType;
+use App\Jobs\SendNotificationJob;
 use App\Models\ContributionRule;
 use App\Models\Idir;
 use App\Models\IdirSetting;
@@ -192,7 +194,7 @@ class RegisterIdir extends RegisterTenant
             }
 
             // 6. Create Member record for the founder as Chairperson
-            Member::create([
+            $member = Member::create([
                 'idir_id' => $idir->id,
                 'user_id' => $user->id,
                 'full_name' => $user->name,
@@ -201,6 +203,8 @@ class RegisterIdir extends RegisterTenant
                 'status' => MemberStatus::Active,
                 'committee_role' => CommitteeRole::Chair,
             ]);
+
+            SendNotificationJob::dispatch($idir->id, $member->id, NotificationType::NewMemberWelcome);
 
             Notification::make()
                 ->title('የእድር ምዝገባ ጥያቄዎ ቀርቧል!')
