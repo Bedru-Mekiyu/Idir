@@ -39,11 +39,13 @@ class ProcessPaymentWebhookJob implements ShouldQueue
 
             if (! $contribution) {
                 Log::warning("Webhook: Contribution with tx_ref {$this->txRef} not found.");
+
                 return;
             }
 
             if ($contribution->chapa_status === ChapaStatus::Verified) {
                 Log::info("Webhook: Contribution with tx_ref {$this->txRef} already verified.");
+
                 return;
             }
 
