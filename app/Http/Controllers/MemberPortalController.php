@@ -95,12 +95,35 @@ class MemberPortalController extends Controller
         }
 
         $validated = $request->validate([
-            'method' => ['required', Rule::in(['telebirr', 'cbebirr', 'chapa'])],
-            'mobile' => ['required_if:method,telebirr,cbebirr', 'nullable', 'string', 'regex:/^[+0-9][0-9\s-]{8,16}$/'],
+            'method' => ['required', Rule::in(['telebirr_ussd', 'telebirr_h5', 'cbebirr', 'chapa', 'mpesa'])],
+            'mobile' => ['required_if:method,telebirr_ussd,cbebirr,mpesa', 'nullable', 'string', 'regex:/^[+0-9][0-9\s-]{8,16}$/'],
         ]);
 
         $amount = (float) ($member->idir->settings?->dues_amount ?? config('idir.defaults.dues_amount'));
         $period = now()->format('Y-m');
+
+        if ($validated['method'] === 'telebirr_h5') {
+            $response = $gatewayManager->driver('telebirr')->initialize($member, $amount, $period);
+            $checkoutUrl = $response['data']['checkout_url'] ?? null;
+            if (($response['status'] ?? '') !== 'success' || ! $checkoutUrl) {
+                return back()->withErrors(['payment' => $response['message'] ?? __('contribution.payment_init_failed')]);
+            }
+
+            return redirect()->away($checkoutUrl);
+        }
+
+        if ($validated['method'] === 'mpesa') {
+            $response = $gatewayManager->driver('mpesa')->initialize($member, $amount, $period);
+            if (($response['status'] ?? '') !== 'success') {
+                return back()->withErrors(['payment' => $response['message'] ?? __('contribution.payment_init_failed')]);
+            }
+            $contribution = Contribution::where('member_id', $member->id)
+                ->where('chapa_status', 'pending')
+                ->latest()
+                ->first();
+
+            return redirect()->route('member.payment.pending', $contribution);
+        }
 
         /** @var ChapaDriver $driver */
         $driver = $gatewayManager->driver('chapa');
@@ -123,7 +146,8 @@ class MemberPortalController extends Controller
         }
 
         $mobile = preg_replace('/[^0-9+]/', '', $validated['mobile'] ?? '');
-        $response = $driver->initializeDirectCharge($member, $amount, $period, $validated['method'], $mobile);
+        $chapaType = $validated['method'] === 'telebirr_ussd' ? 'telebirr' : $validated['method'];
+        $response = $driver->initializeDirectCharge($member, $amount, $period, $chapaType, $mobile);
 
         if (($response['status'] ?? '') !== 'success') {
             return back()->withErrors(['payment' => $response['message'] ?? __('contribution.payment_init_failed')]);
