@@ -52,21 +52,35 @@
         <h2 class="text-lg font-bold text-gray-900 mb-4">የክፍያ ዘዴ ይምረጡ</h2>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <!-- Telebirr (primary) -->
+            <!-- Telebirr (USSD) -->
             <label class="cursor-pointer transition">
-                <input type="radio" name="method" value="telebirr" class="peer sr-only" checked>
+                <input type="radio" name="method" value="telebirr_ussd" class="peer sr-only" checked>
                 <span class="block bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4 peer-checked:ring-2 peer-checked:ring-blue-600 peer-checked:border-blue-600">
                     <span class="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center flex-shrink-0">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                     </span>
                     <span>
-                        <span class="block font-bold text-gray-900">በቴሌብር ይክፈሉ</span>
-                        <span class="block text-sm text-gray-500 mt-0.5">Telebirr · በስልክዎ የክፍያ ጥያቄ (USSD) ይደርስዎታል</span>
+                        <span class="block font-bold text-gray-900">ቴሌቢር (USSD ፑሽ)</span>
+                        <span class="block text-sm text-gray-500 mt-0.5">ዩኤስኤስዲ ፕሮምፕት ወደ ስልክዎ</span>
                     </span>
                 </span>
             </label>
 
-            <!-- CBE Birr (primary) -->
+            <!-- Telebirr H5 -->
+            <label class="cursor-pointer transition">
+                <input type="radio" name="method" value="telebirr_h5" class="peer sr-only">
+                <span class="block bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4 peer-checked:ring-2 peer-checked:ring-blue-500 peer-checked:border-blue-500">
+                    <span class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                    </span>
+                    <span>
+                        <span class="block font-bold text-gray-900">ቴሌቢር (ድር ክፍያ)</span>
+                        <span class="block text-sm text-gray-500 mt-0.5">ወደ ቴሌቢር ዌብ ክፍያ ገጽ ይሄዳሉ</span>
+                    </span>
+                </span>
+            </label>
+
+            <!-- CBE Birr -->
             <label class="cursor-pointer transition">
                 <input type="radio" name="method" value="cbebirr" class="peer sr-only">
                 <span class="block bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4 peer-checked:ring-2 peer-checked:ring-red-600 peer-checked:border-red-600">
@@ -76,6 +90,20 @@
                     <span>
                         <span class="block font-bold text-gray-900">በሲቢኢ ብር ይክፈሉ</span>
                         <span class="block text-sm text-gray-500 mt-0.5">CBE Birr · በስልክዎ የክፍያ ጥያቄ (USSD) ይደርስዎታል</span>
+                    </span>
+                </span>
+            </label>
+
+            <!-- M-Pesa -->
+            <label class="cursor-pointer transition">
+                <input type="radio" name="method" value="mpesa" class="peer sr-only">
+                <span class="block bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4 peer-checked:ring-2 peer-checked:ring-green-600 peer-checked:border-green-600">
+                    <span class="w-12 h-12 rounded-xl bg-green-50 text-green-700 border border-green-200 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    </span>
+                    <span>
+                        <span class="block font-bold text-gray-900">M-Pesa (ሳፋሪኮም)</span>
+                        <span class="block text-sm text-gray-500 mt-0.5">ዩኤስኤስዲ ፕሮምፕት ወደ M-Pesa ስልክዎ</span>
                     </span>
                 </span>
             </label>
@@ -106,7 +134,7 @@
 
         <button type="submit"
                 class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-2xl px-6 py-4 transition shadow-sm">
-            <span id="submit-label">በቴሌብር ይክፈሉ · ብር {{ number_format($dueAmount, 2) }}</span>
+            <span id="submit-label">ክፍያ · ብር {{ number_format($dueAmount, 2) }}</span>
         </button>
     </form>
 
@@ -116,16 +144,19 @@
             var phoneBlock = document.getElementById('phone-block');
             var submitLabel = document.getElementById('submit-label');
             var labels = {
-                telebirr: 'በቴሌብር ይክፈሉ',
+                telebirr_ussd: 'ቴሌቢር (USSD ፑሽ)',
+                telebirr_h5: 'ቴሌቢር (ድር ክፍያ)',
                 cbebirr: 'በሲቢኢ ብር ይክፈሉ',
+                mpesa: 'M-Pesa (ሳፋሪኮም)',
                 chapa: 'በሌሎች ዘዴዎች ይክፈሉ'
             };
 
             function sync() {
                 var method = document.querySelector('input[name="method"]:checked');
-                method = method ? method.value : 'telebirr';
-                phoneBlock.classList.toggle('hidden', method === 'chapa');
-                submitLabel.textContent = labels[method] + ' · ብር {{ number_format($dueAmount, 2) }}';
+                method = method ? method.value : 'telebirr_ussd';
+                var needsPhone = ['telebirr_ussd', 'cbebirr', 'mpesa'].includes(method);
+                phoneBlock.classList.toggle('hidden', !needsPhone);
+                submitLabel.textContent = (labels[method] || 'ክፍያ') + ' · ብር {{ number_format($dueAmount, 2) }}';
             }
 
             radios.forEach(function (radio) {

@@ -41,6 +41,31 @@
                 <input type="text" value="{{ auth()->user()->phone }}" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-500 cursor-not-allowed">
             </div>
 
+            <div class="mb-8">
+                <label class="block text-sm font-bold text-gray-700 mb-2">ፋይዳ መታወቂያ (Fayda ID)</label>
+                
+                @php $member = auth()->user()->member; @endphp
+                @if($member && $member->fayda_verified)
+                    <div class="flex items-center gap-3 w-full bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <div>
+                            <p class="text-sm font-bold text-emerald-900">የተረጋገጠ ፋይዳ ቁጥር</p>
+                            <p class="text-xs text-emerald-700 font-mono">{{ $member->fayda_id ?? 'Verified' }}</p>
+                        </div>
+                    </div>
+                @else
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600">
+                        <div>
+                            <p class="font-bold text-gray-700">ፋይዳ ቁጥር አልተረጋገጠም</p>
+                            <p class="text-xs text-gray-500">ለተጨማሪ አገልግሎቶች እባክዎ ፋይዳዎን ያረጋግጡ።</p>
+                        </div>
+                        <a href="{{ route('fayda.redirect') }}" class="inline-flex justify-center items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition whitespace-nowrap text-sm">
+                            ፋይዳ ቁጥር አረጋግጥ
+                        </a>
+                    </div>
+                @endif
+            </div>
+
             <div class="pt-4 border-t border-gray-100 flex justify-end">
                 <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">
                     ቅንብሩን አስቀምጥ (Save Changes)
