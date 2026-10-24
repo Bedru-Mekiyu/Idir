@@ -4,6 +4,7 @@ namespace App\Services\Payments;
 
 use App\Enums\PaymentMethod;
 use App\Services\Payments\Drivers\ChapaDriver;
+use App\Services\Payments\Drivers\MpesaDriver;
 use App\Services\Payments\Drivers\TelebirrDriver;
 use Illuminate\Support\Manager;
 
@@ -16,11 +17,16 @@ class PaymentGatewayManager extends Manager
 
     public function createChapaDriver(): PaymentGatewayInterface
     {
-        return new ChapaDriver();
+        return new ChapaDriver;
     }
 
     public function createTelebirrDriver(): PaymentGatewayInterface
     {
-        return new TelebirrDriver();
+        return new TelebirrDriver;
+    }
+
+    public function createMpesaDriver(): PaymentGatewayInterface
+    {
+        return new MpesaDriver;
     }
 }
