@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Sms\SmsGatewayManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -15,7 +16,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(SmsGatewayManager::class, function ($app) {
+            return new SmsGatewayManager($app);
+        });
     }
 
     /**
