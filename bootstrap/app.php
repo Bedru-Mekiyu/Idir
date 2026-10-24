@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Chapa's payment gateway posts webhooks without a CSRF token, so the
         // callback must be exempted. The signature itself is verified (HMAC)
         // before any payload is processed.
-        $middleware->validateCsrfTokens(except: ['api/chapa/webhook']);
+        $middleware->validateCsrfTokens(except: ['api/chapa/webhook', 'api/mpesa/webhook', 'api/telebirr/webhook']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

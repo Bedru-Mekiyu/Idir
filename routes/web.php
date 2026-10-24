@@ -6,7 +6,9 @@ use App\Http\Controllers\Auth\MemberAuthController;
 use App\Http\Controllers\Auth\PublicAuthController;
 use App\Http\Controllers\MemberPortalController;
 use App\Http\Controllers\MemberProfileController;
+use App\Jobs\ProcessMpesaWebhookJob;
 use App\Jobs\ProcessPaymentWebhookJob;
+use App\Jobs\ProcessTelebirrWebhookJob;
 use App\Models\Contribution;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -77,7 +79,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/member/receipt/{contribution}', [MemberPortalController::class, 'showReceipt'])->name('member.receipt');
 
     Route::get('/payment/success', function () {
-        return view('layouts.member', [
+        return view('member.payment-success', [
             'member' => auth()->user()?->member,
         ]);
     })->name('payment.success');
@@ -120,3 +122,15 @@ Route::post('/api/chapa/webhook', function (Request $request) {
 
     return response()->json(['status' => 'acknowledged'], 200);
 })->middleware('throttle:60,1')->name('chapa.webhook');
+
+Route::post('/api/mpesa/webhook', function (Request $request) {
+    ProcessMpesaWebhookJob::dispatch($request->all());
+
+    return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
+})->name('mpesa.webhook');
+
+Route::post('/api/telebirr/webhook', function (Request $request) {
+    ProcessTelebirrWebhookJob::dispatch($request->all());
+
+    return response()->json(['status' => 'ok']);
+})->name('telebirr.webhook');
