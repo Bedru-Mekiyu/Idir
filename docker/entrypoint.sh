@@ -15,6 +15,23 @@ mkdir -p /var/www/html/bootstrap/cache
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Ensure APP_KEY is available
+if [ -z "$APP_KEY" ]; then
+    echo "Warning: APP_KEY not provided in environment. Generating a new key..."
+    export APP_KEY=$(php artisan key:generate --show --no-ansi)
+fi
+
+# Ensure .env exists in container and contains the APP_KEY
+if [ ! -f /var/www/html/.env ]; then
+    touch /var/www/html/.env
+fi
+
+if ! grep -q "^APP_KEY=" /var/www/html/.env 2>/dev/null; then
+    echo "APP_KEY=${APP_KEY}" >> /var/www/html/.env
+else
+    sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|" /var/www/html/.env
+fi
+
 # Handle SQLite database file if used
 if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
     DB_FILE="${DB_DATABASE:-/var/www/html/database/database.sqlite}"
@@ -26,6 +43,11 @@ if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
     chown -R www-data:www-data "$(dirname "$DB_FILE")"
     chmod -R 775 "$(dirname "$DB_FILE")"
 fi
+
+# Clear any previous cached configurations before caching fresh ones
+php artisan config:clear || true
+php artisan route:clear || true
+php artisan view:clear || true
 
 # Link storage
 php artisan storage:link --force || true
