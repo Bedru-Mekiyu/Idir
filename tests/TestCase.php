@@ -28,6 +28,7 @@ abstract class TestCase extends BaseTestCase
         'DB_DATABASE' => ':memory:',
         'MAIL_MAILER' => 'array',
         'BCRYPT_ROUNDS' => '4',
+        'APP_KEY' => 'base64:XG8o6N04T9F+B+5H4k9Z1Xz7Qo9Y2Q1J5S5S5S5S5S8=',
     ];
 
     public function createApplication()

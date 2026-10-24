@@ -17,9 +17,9 @@ use App\Models\IdirSetting;
 use App\Models\Member;
 use App\Models\NotificationEvent;
 use App\Models\NotificationPreference;
-use App\Services\AfroMessageService;
 use App\Services\LedgerService;
 use App\Services\Payments\PaymentGatewayManager;
+use App\Services\Sms\SmsGatewayManager;
 use App\Services\TelegramService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -119,7 +119,7 @@ class QueuedJobsTest extends TestCase
             ]
         );
 
-        $job->handle(app(AfroMessageService::class), app(TelegramService::class));
+        $job->handle(app(SmsGatewayManager::class), app(TelegramService::class));
 
         $this->assertDatabaseHas('notification_events', [
             'idir_id' => $this->idir->id,
@@ -151,7 +151,7 @@ class QueuedJobsTest extends TestCase
             ['amount' => 200.00, 'period' => '2026-08']
         );
 
-        $job->handle(app(AfroMessageService::class), app(TelegramService::class));
+        $job->handle(app(SmsGatewayManager::class), app(TelegramService::class));
 
         $this->assertDatabaseHas('notification_events', [
             'member_id' => $this->member->id,

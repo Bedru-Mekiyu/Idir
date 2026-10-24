@@ -15,7 +15,7 @@ use App\Models\Member;
 use App\Models\NotificationEvent;
 use App\Models\PayoutTriggerType;
 use App\Models\User;
-use App\Services\AfroMessageService;
+use App\Services\Sms\SmsGatewayManager;
 use App\Services\TelegramService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -152,7 +152,7 @@ class NotificationTriggersTest extends TestCase
             ['amount' => 2500, 'period' => '2026-03'],
         );
 
-        $job->handle(app(AfroMessageService::class), app(TelegramService::class));
+        $job->handle(app(SmsGatewayManager::class), app(TelegramService::class));
 
         $event = NotificationEvent::latest()->first();
 
@@ -177,7 +177,7 @@ class NotificationTriggersTest extends TestCase
         );
 
         try {
-            $job->handle(app(AfroMessageService::class), app(TelegramService::class));
+            $job->handle(app(SmsGatewayManager::class), app(TelegramService::class));
             $this->fail('Expected the job to throw so the queue retries the delivery.');
         } catch (\RuntimeException $e) {
             $this->assertStringContainsString('will be retried', $e->getMessage());

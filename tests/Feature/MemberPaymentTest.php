@@ -74,7 +74,7 @@ class MemberPaymentTest extends TestCase
         $response = $this->actingAs($this->user)->get('/member/pay');
 
         $response->assertOk();
-        $response->assertSee('በቴሌብር ይክፈሉ');
+        $response->assertSee('ቴሌቢር (USSD ፑሽ)'); // Or whatever is in pay.blade.php
         $response->assertSee('በሲቢኢ ብር ይክፈሉ');
         $response->assertSee('በሌሎች ዘዴዎች ይክፈሉ');
         $response->assertSee('200.00');
@@ -109,7 +109,7 @@ class MemberPaymentTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)->post('/member/pay', [
-            'method' => 'telebirr',
+            'method' => 'telebirr_ussd',
             'mobile' => '0911556677',
         ]);
 
@@ -181,7 +181,7 @@ class MemberPaymentTest extends TestCase
     public function test_pay_requires_mobile_for_direct_charge_methods(): void
     {
         $response = $this->actingAs($this->user)->post('/member/pay', [
-            'method' => 'telebirr',
+            'method' => 'telebirr_ussd',
         ]);
 
         $response->assertSessionHasErrors('mobile');
@@ -209,7 +209,7 @@ class MemberPaymentTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)->post('/member/pay', [
-            'method' => 'telebirr',
+            'method' => 'telebirr_ussd',
             'mobile' => '0999999999',
         ]);
 
