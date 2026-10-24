@@ -17,6 +17,7 @@ class NotificationPreference extends Model
         'sms_enabled',
         'telegram_enabled',
         'in_app_enabled',
+        'email_enabled',
         'template_am',
         'template_en',
     ];
@@ -28,6 +29,7 @@ class NotificationPreference extends Model
             'sms_enabled' => 'boolean',
             'telegram_enabled' => 'boolean',
             'in_app_enabled' => 'boolean',
+            'email_enabled' => 'boolean',
         ];
     }
 

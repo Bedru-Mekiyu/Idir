@@ -8,6 +8,7 @@ enum PaymentMethod: string
     case Chapa = 'chapa';
     case Telebirr = 'telebirr';
     case CBEBirr = 'cbebirr';
+    case Mpesa = 'mpesa';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum PaymentMethod: string
             self::Chapa => __('contribution.method.chapa'),
             self::Telebirr => __('contribution.method.telebirr'),
             self::CBEBirr => __('contribution.method.cbebirr'),
+            self::Mpesa => __('contribution.method.mpesa'),
         };
     }
 
@@ -31,6 +33,7 @@ enum PaymentMethod: string
             self::CBEBirr => 'cbebirr',
             self::Chapa => null,
             self::Cash => null,
+            self::Mpesa => null,
         };
     }
 }

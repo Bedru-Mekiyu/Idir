@@ -25,6 +25,7 @@ class Contribution extends Model
         'in_kind_description',
         'period_covered',
         'chapa_tx_ref',
+        'gateway_reference',
         'chapa_status',
         'notes',
         'is_correction',
