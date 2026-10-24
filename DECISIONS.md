@@ -314,3 +314,49 @@ and is logged.
 
 ## STANDING RULE: Global Design Consistency
 - **Rule**: Any time a color, theme, logo, or design-system change is made, it must be applied and verified across **every page in the application in one pass**, not just the page being actively discussed. Batch-editing and assuming global success is prohibited. Every page must be individually loaded, verified, and screenshotted to confirm the update.
+
+## D13 — TelebirrDriver architecture
+
+**Date:** 2026-09-14
+
+**Context:** TelebirrDriver was registered but never called because MemberPortalController correctly calls ChapaDriver::initializeDirectCharge(type='telebirr'). Chapa acts as the gateway wrapper for Telebirr.
+
+**Decision:** Added a clear class-level docblock to TelebirrDriver marking it as a placeholder for a future direct integration. It should not be used in production until a real Telebirr developer account is obtained. The current production path correctly routes through Chapa.
+
+
+## D14 — Platform fee and bank details out of scope
+
+**Date:** 2026-09-14
+
+**Context:** Gap analysis identified missing platform fee and direct bank detail management.
+
+**Decision:** Platform fee deduction and direct bank detail management are NOT implemented. The platform operates via Chapa subaccount split routing only. A platform fee percentage mechanism is a future roadmap item. Explicitly out of scope for the current builder pass.
+
+
+## D15 — Chapa API verification status
+
+**Date:** 2026-09-14
+
+**Context:** Gap analysis pointed out missing end-to-end sandbox verification for Chapa.
+
+**Decision:** Real Chapa sandbox API calls have NOT been verified end-to-end in this environment because CHAPA_SECRET_KEY pointing to a real sandbox account is not available. The code is structurally correct (Http::withToken sends proper payloads, webhook HMAC verified). Real end-to-end payment verification requires deploying with real Chapa sandbox credentials.
+
+## D16: Deferred M-Pesa Webhook Race Condition Fix
+
+**Decision**: RESOLVED — gateway_reference column added to store CheckoutRequestID, eliminating the race condition.
+
+## D17 — M-Pesa Driver Status & Passkey Retraction
+
+**Date:** 2026-09-17
+
+**Context:** Analysis of Safaricom Ethiopia Developer Portal frontend bundles revealed sandbox simulator passkeys paired with test shortcodes. However, an audit of Safaricom Ethiopia's sandbox infrastructure confirmed two fundamental external blockers:
+1. **No Self-Service Passkey Issuance**: The developer portal does not provide developers with individual passkeys in self-service.
+2. **Unresolvable Sandbox DNS**: Safaricom Ethiopia's sandbox domains (`sandbox.safaricom.et` and `sandbox.saf.et`) currently have no public DNS records published (`NXDOMAIN`), making external backend HTTP calls impossible regardless of passkey correctness.
+
+**Decision:** 
+1. Retracted the reverse-engineered `SANDBOX_PASSKEYS` map completely from `MpesaDriver.php`.
+2. Restored `generatePassword()` and `initialize()` to require `MPESA_PASSKEY` as an explicit, plain `.env` value with no hardcoded fallback or guessed values. If missing, the driver fails clearly and early (`configured: false`).
+3. Documented in `.env.example` that `MPESA_PASSKEY` must be obtained directly from Safaricom Ethiopia developer support or an enterprise merchant onboarding agreement.
+4. Preserved the SHA-256 Base64 password hashing algorithm (`base64(hex_sha256(ShortCode . PassKey . Timestamp))`) and OAuth2 client credentials flow, ensuring code readiness once Safaricom publishes public sandbox routing.
+
+

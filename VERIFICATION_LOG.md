@@ -436,3 +436,79 @@ identical result (exit code 0, 0 findings). Two consecutive clean passes → Are
 **Pass 2 (browser, repeat):** 🟢 CLEAN — re-run of Pass 1 script from a fresh seed; identical result (exit code 0, 0 findings). Two consecutive clean passes → Area 12 verified.
 
 **Outcome (both passes):** Verified. Full responsive design compliance from 375px mobile to 1920px widescreen, zero horizontal scroll overflow, and proper Ethiopian typography rendering across all viewports.
+## Builder Pass — 2026-09-14
+
+### GAP-F2 — Fayda Area 9 false positive documentation
+NOTE [2026-09-14]: The 'Fayda Verified badge' shown in Area 9 verification was produced by the mock fallback path (FaydaOidcService returns mock_fayda_access_token_* when clientId or privateKeyPath is not configured). A real Fayda eSignet sandbox test has not been performed. Real Fayda verification requires FAYDA_CLIENT_ID, FAYDA_REDIRECT_URI, and a real RSA private key path configured in .env.
+
+
+### Builder Pass Fixes - 2026-09-14
+
+- **GAP-P7**: Created member payment-success view and updated routes/web.php. Verified via tests.
+- **GAP-P2**: Fixed PaymentMethod enum in TelebirrDriver.php.
+- **UNVERIFIED-P3**: Seeded chapa_subaccount_id in test idir, verified via ChapaDriverSubaccountTest.php.
+- **UNVERIFIED-P5**: Documented real Chapa API missing sandbox keys.
+- **GAP-N1**: Dispatched NewMemberWelcome notification on public self-registration. Verified via RegisterIdirNotificationTest.php.
+- **GAP-F1**: Added 'Verify Fayda ID' button to member profile page.
+- **GAP-C1**: Added Node.js setup and npm run build step to ci.yml pipeline.
+- All tests passed (103/103) and pint reported clean formatting.
+
+## Multi-Gateway, SMS Abstraction, Email Channel & Platform Expansion Pass — 2026-09-15
+
+### 1. Multi-Gateway Payments
+- **Telebirr Direct H5 Driver**: Fully rebuilt `app/Services/Payments/Drivers/TelebirrDriver.php` implementing Ethio Telecom's H5 payment gateway. Supports order creation, HMAC-SHA256 signature, AES payload encryption with RSA key encapsulation, and sandbox fallback.
+- **Telebirr Webhook Handler**: Implemented `ProcessTelebirrWebhookJob`, route `POST /api/telebirr/webhook`, added to CSRF exemptions in `bootstrap/app.php`, and verified via `TelebirrWebhookTest`.
+- **M-Pesa Ethiopia STK Push Driver**: Implemented `app/Services/Payments/Drivers/MpesaDriver.php` with Safaricom Ethiopia OAuth2 token generation and STK Push (`/mpesa/stkpush/v1/processrequest`).
+- **M-Pesa Webhook & Race Condition Resolution**: Added `gateway_reference` indexed column to `contributions` table (`2026_09_15_073937_add_gateway_reference_to_contributions_table.php`). `MpesaDriver` persists the `CheckoutRequestID`, and `ProcessMpesaWebhookJob` matches incoming callbacks directly by `gateway_reference`, eliminating the race condition.
+- **Payment Method Selection Screen**: Updated `resources/views/member/pay.blade.php` with 4 distinct payment options: Telebirr USSD Push, Telebirr H5 Web Checkout, CBE Birr, M-Pesa (Safaricom), and Chapa. Dynamic JavaScript handles telephone input requirement only for USSD direct charges.
+
+### 2. Swappable SMS Architecture
+- **SmsGatewayManager**: Extends `Illuminate\Support\Manager` to support swappable SMS providers dynamically via `SMS_DRIVER=afromessage|geezsms|africastalking` in `.env`. Registered as singleton in `AppServiceProvider`.
+- **AfroMessageDriver**: Refactored existing AfroMessage implementation into `App\Services\Sms\Drivers\AfroMessageDriver` implementing `SmsGatewayInterface`. Kept `AfroMessageService` as a backwards-compatible class shim.
+- **GeezSmsDriver**: Built dedicated driver sending to `https://api.geezsms.com/api/v1/sms/send/bulk` with token in JSON payload and normalized phone numbers. Verified with `GeezSmsDriverTest` including `Http::assertSent()` payload inspection.
+- **AfricasTalkingDriver**: Integrated official `africastalking/africastalking` SDK for pan-African and Ethiopian SMS routing with sandbox support.
+- **SendNotificationJob**: Updated to inject `SmsGatewayManager`, automatically delegating SMS dispatches to the active provider.
+
+### 3. Email Notification Channel
+- **Database Schema**: Migration `2026_09_15_064828_add_email_enabled_to_notification_preferences_table.php` added `email_enabled` boolean column.
+- **NotificationChannel Enum**: Added `case Email = 'email'`.
+- **Mailables & HTML Templates**: Built 4 Amharic-first HTML markdown email templates and Mailable classes: `PaymentConfirmationMail`, `ClaimApprovedMail`, `DisbursementMadeMail`, and `IdirApprovedMail`.
+- **Filament Admin Management**: Added `email_enabled` toggle and table column to `NotificationPreferenceResource`. Added translations in `lang/am/notification.php` and `lang/en/notification.php`.
+- **SendNotificationJob**: Implemented safe queueing of emails when member email is present and channel is enabled, with full exception handling. Verified via `EmailNotificationTest`.
+
+### 4. Committee Operations & Analytics
+- **Bulk General Announcement**: Built `app/Filament/Pages/SendAnnouncement.php` and Blade view enabling committee members to send broadcast announcements to all active members via SMS, Telegram, and Email.
+- **Contribution CSV Export**: Added `CSV ላውርድ` header action in `ContributionResource` table for instantaneous CSV data export with eager loading.
+- **Overdue Members Widget**: Built `app/Filament/Widgets/OverdueMembersWidget.php` showing arrears status and amounts for overdue members on the committee dashboard.
+
+### 5. Verification Suite Results
+- **Pint Formatting**: Passed cleanly (`{"tool":"pint","result":"passed"}`).
+- **PHPUnit Test Suite**: 116 tests, 405 assertions — 100% PASSING.
+- **Verification Qualification**:
+  - `TelebirrDriver` and `MpesaDriver` are verified via local unit tests (`Http::fake()`).
+  - Neither has been executed against live provider sandbox/production endpoints due to lack of real API credentials (app ID, consumer keys, passkeys, RSA keys).
+  - Both drivers are **built to the documented API shape, but not yet confirmed against a real endpoint**.
+- **Routes Confirmed**:
+  - `POST api/telebirr/webhook` (CSRF-exempt)
+  - `POST api/mpesa/webhook` (CSRF-exempt)
+  - `POST api/chapa/webhook` (CSRF-exempt)
+  - `POST member/pay` (supports telebirr_ussd, telebirr_h5, cbebirr, mpesa, chapa)
+
+## M-Pesa Driver Passkey Retraction & External Status Log — 2026-09-17
+
+### 1. Retraction of Reverse-Engineered Map
+- Removed the `SANDBOX_PASSKEYS` dictionary entirely from `app/Services/Payments/Drivers/MpesaDriver.php`.
+- Restored `generatePassword()` and `initialize()` to require `MPESA_PASSKEY` explicitly configured in `.env`.
+- Added unit test `test_it_returns_configured_false_if_passkey_missing` in `tests/Feature/Payments/MpesaDriverTest.php`.
+- Verified test suite: 117 tests passing, 408 assertions, 0 failures.
+
+### 2. External Provider Reality Check
+- **Driver Readiness**: Architecture, OAuth2 token handling, STK Push request dispatch, and webhook processing matched by `gateway_reference` (`CheckoutRequestID`) are completely built and verified with tests.
+- **External Blockers**:
+  1. **Passkey**: Safaricom Ethiopia does not provide self-service passkey issuance for sandbox apps on `developer.safaricom.et`. Passkeys must be provisioned directly by Safaricom support.
+  2. **DNS Resolution**: `sandbox.safaricom.et` and `sandbox.saf.et` have no public DNS records published (`NXDOMAIN`). Direct server-to-server calls cannot resolve externally without private APN/VPN or Safaricom publishing public sandbox DNS.
+- **Conclusion**: Blocked on upstream Safaricom Ethiopia infrastructure and credential provisioning; codebase is clean, standards-compliant, and contains no reverse-engineered artifacts.
+
+
+
+
