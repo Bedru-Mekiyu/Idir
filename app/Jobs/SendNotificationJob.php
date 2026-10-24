@@ -5,17 +5,24 @@ namespace App\Jobs;
 use App\Enums\NotificationChannel;
 use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
+use App\Mail\ClaimApprovedMail;
+use App\Mail\DisbursementMadeMail;
+use App\Mail\IdirApprovedMail;
+use App\Mail\PaymentConfirmationMail;
 use App\Models\Idir;
 use App\Models\Member;
 use App\Models\NotificationEvent;
 use App\Models\NotificationPreference;
-use App\Services\AfroMessageService;
+use App\Services\Sms\SmsGatewayManager;
 use App\Services\TelegramService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Mail\Mailable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SendNotificationJob implements ShouldQueue
 {
@@ -32,7 +39,7 @@ class SendNotificationJob implements ShouldQueue
         public array $placeholders = []
     ) {}
 
-    public function handle(AfroMessageService $sms, TelegramService $telegram): void
+    public function handle(SmsGatewayManager $sms, TelegramService $telegram): void
     {
         $member = $this->memberId ? Member::with('idir')->find($this->memberId) : null;
         $idir = $member ? $member->idir : Idir::find($this->idirId);
@@ -107,6 +114,38 @@ class SendNotificationJob implements ShouldQueue
             }
         }
 
+        // 3. Send Email if enabled
+        if (($pref?->email_enabled ?? false) && $member?->user?->email) {
+            $mailable = $this->resolveMailable($member, $idir->name);
+            if ($mailable !== null) {
+                try {
+                    Mail::to($member->user->email)->queue($mailable);
+                    NotificationEvent::create([
+                        'idir_id' => $this->idirId,
+                        'member_id' => $this->memberId,
+                        'type' => $this->type,
+                        'channel' => NotificationChannel::Email,
+                        'status' => NotificationStatus::Sent,
+                        'message_content' => $messageContent,
+                        'error_detail' => null,
+                        'sent_at' => now(),
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error("Email notification failed: {$e->getMessage()}");
+                    NotificationEvent::create([
+                        'idir_id' => $this->idirId,
+                        'member_id' => $this->memberId,
+                        'type' => $this->type,
+                        'channel' => NotificationChannel::Email,
+                        'status' => NotificationStatus::Failed,
+                        'message_content' => $messageContent,
+                        'error_detail' => $e->getMessage(),
+                        'sent_at' => now(),
+                    ]);
+                }
+            }
+        }
+
         // Throw so the queue retries per $tries/$backoff and, once exhausted,
         // records the job in failed_jobs (visible in Horizon). A permanent
         // misconfiguration is recorded as a failed event above but not retried.
@@ -134,6 +173,17 @@ class SendNotificationJob implements ShouldQueue
             NotificationType::NewMemberWelcome => 'እንኳን ወደ :idir_name በደህና መጡ፣ ውድ :member_name! አባልነትዎ በተሳካ ሁኔታ ተመዝግቧል።',
             NotificationType::IdirApproved => 'እንኳን ደስ አለዎት ውድ :member_name! የ:idir_name እድር ምዝገባ ጸድቋል። አሁን አገልግሎት መጀመር ይችላሉ።',
             NotificationType::IdirRejected => 'ውድ :member_name፣ የ:idir_name እድር ምዝገባ ጥያቄ ተቀባይነት አላገኘም። ምክንያት፦ :reason',
+        };
+    }
+
+    protected function resolveMailable(Member $member, string $idirName): ?Mailable
+    {
+        return match ($this->type) {
+            NotificationType::PaymentConfirmation => new PaymentConfirmationMail($member, $idirName, $this->placeholders),
+            NotificationType::ClaimApproved => new ClaimApprovedMail($member, $idirName, $this->placeholders),
+            NotificationType::DisbursementMade => new DisbursementMadeMail($member, $idirName, $this->placeholders),
+            NotificationType::IdirApproved => new IdirApprovedMail($member, $idirName, $this->placeholders),
+            default => null, // Other types are SMS/Telegram only
         };
     }
 }
