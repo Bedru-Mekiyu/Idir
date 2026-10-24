@@ -97,6 +97,7 @@ class EthiopianSampleDataSeeder extends Seeder
             'required_approvals' => 2,
             'enabled_payout_triggers' => ['death', 'wedding', 'emergency'],
             'fund_balance' => 0.00,
+            'chapa_subaccount_id' => 'TEST-SUBACCOUNT-001',
         ]);
 
         ContributionRule::create([
